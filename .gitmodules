@@ -1,0 +1,3 @@
+[submodule "RT-DETR"]
+	path = RT-DETR
+	url = git@github.com:lyuwenyu/RT-DETR.git
