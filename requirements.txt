@@ -1,0 +1,14 @@
+numpy>=1.26
+onnx>=1.16
+onnx-graphsurgeon>=0.5.2
+# Deployment / quant / analysis
+tensorrt==11.0.0.114
+nvidia-modelopt==0.44.0
+polygraphy==0.50.3
+onnxruntime-gpu>=1.27
+# Eval / measurement
+pycocotools>=2.0.7
+pynvml>=11.5
+# Viz / test
+matplotlib>=3.8
+pytest>=8.0
