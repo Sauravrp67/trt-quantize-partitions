@@ -1,0 +1,9 @@
+# NanoDet precision-partition spec placeholder.
+#
+# TODO:
+#   - List stable layer names from graph surgery.
+#   - Mark decode, head, and normalization keepout regions if needed.
+#   - Define INT8-safe regions for TensorRT layerPrecisions.
+model: nanodet
+target_gpu: rtx4050_sm89_55w
+partitions: []

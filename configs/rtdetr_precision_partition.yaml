@@ -1,0 +1,9 @@
+# RT-DETR precision-partition spec placeholder.
+#
+# TODO:
+#   - List stable layer names from graph surgery.
+#   - Mark sensitivity-driven FP32/FP16 keepout regions.
+#   - Define INT8-safe regions for TensorRT layerPrecisions.
+model: rtdetr
+target_gpu: rtx4050_sm89_55w
+partitions: []
