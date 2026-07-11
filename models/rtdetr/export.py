@@ -63,16 +63,13 @@ def export(args,):
     model = RTDETRExportModel(config=config)
     _ = model(data)
 
-    dynamic_axes = {
-        'images': {0: 'batch_size'}
-    }
+  
     
     onnx_program = torch.onnx.export(
         model,
         (data,),
         input_names = ['images'],
         output_names=['pred_logits', 'pred_boxes'],
-        dynamic_shapes=dynamic_axes,
         dynamo = True,
         verbose = False,
         verify=True,
@@ -87,14 +84,14 @@ def export(args,):
     print(verify_parity(onnx_program._inference_session, model = model))
     
     
-    # onnx_program.save(args.file_name)
+    onnx_program.save(args.file_name)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', '-c', type=str, )
     parser.add_argument('--ckpt', '-r', type=str, )
-    parser.add_argument('--file-name', '-f', type=str, default='model.onnx')
+    parser.add_argument('--file-name', '-f', type=str, default='./models/rtdetr/model.onnx')
     parser.add_argument('--check',  action='store_true', default=False,)
     parser.add_argument('--simplify',  action='store_true', default=False,)
 
