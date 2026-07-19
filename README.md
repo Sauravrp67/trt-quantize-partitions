@@ -1,10 +1,8 @@
 # trt-quantize-partition
 
-Sensitivity-guided precision partitioning for a transformer detector (RT-DETR r18vd) on **TensorRT 11 / RTX 4050 Laptop (sm_89)**, measured for accuracy, latency, power, and perf-per-watt.
+Sensitivity-guided precision partitioning for a transformer detector (RT-DETR r18vd) on **TensorRT 11 / RTX 4050 (sm_89)**, measured for accuracy, latency, power, and perf-per-watt.
 
-**Question:** does a sensitivity-guided INT8/FP16 partition recover INT8's efficiency *and* FP16's accuracy, or must one be traded for the other?
-
-Work in progress. mAP is not yet measured; no accuracy claim is made.
+Work in progress.
 
 ## Status
 
@@ -114,7 +112,7 @@ bash scripts/unlock_clocks.sh
 
 ## Results
 
-FP32 engine · RTX 4050 Laptop (sm_89) · batch=1 · 640×640 · CUDA graph · transfers excluded.
+FP32 engine · RTX 4050 (sm_89) · batch=1 · 640×640 · CUDA graph · transfers excluded.
 
 | | |
 | --- | --- |
