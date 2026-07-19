@@ -16,10 +16,12 @@ Work in progress. mAP is not yet measured; no accuracy claim is made.
 - [x] Frame sources — image / folder / video / camera (`harness/sources.py`)
 - [x] Latency metering — CUDA events (`harness/metrics.py`)
 - [x] NVML power sampler (`harness/power.py`)
-- [x] TensorRT engine builder + per-layer precision readback (`harness/trt_runner.py`)
+- [x] TensorRT engine builder — reproducible (timing cache + tactic-plan fingerprint), per-layer precision readback (`harness/trt_runner.py`)
 - [x] TensorRT 11 API contract guard (`tests/test_trt_contract.py`)
+- [x] Single-backend TensorRT inference runner — image / folder / video / camera (`harness/infer_engine.py`, `--backend trt`)
 - [x] COCO mAP evaluation
-- [ ] FP16 graph conversion + ModelOpt INT8 PTQ (Q/DQ ONNX)
+- [x] FP16 graph conversion — FP32→FP16 ONNX, I/O kept FP32, converter-bug sanitized (`harness/precision.py`)
+- [ ] ModelOpt INT8 PTQ (Q/DQ ONNX)
 - [ ] Benchmark driver → `results/tables/baselines.md`
 - [ ] Layerwise sensitivity map → partition N-sweep → Pareto
 - [ ] Fused MSDeformAttn CUDA plugin (sm_89) + Nsight profile
@@ -70,6 +72,19 @@ python models/rtdetr/infer.py --source images/1.jpg
 python models/rtdetr/infer.py --source images/
 python models/rtdetr/infer.py --source clip.mp4 --save
 python models/rtdetr/infer.py --source 0 --show
+```
+
+**TensorRT engine inference** — single backend, real images/video, same confidence-shaded overlay:
+
+```bash
+python models/rtdetr/infer.py --backend trt --source images/1.jpg
+python models/rtdetr/infer.py --backend trt --source clip.mp4 --save   # builds from ONNX, or pass --engine <file>
+```
+
+**FP16 graph** — precision is declared in the ONNX (see the table above), not by a flag:
+
+```bash
+python -c "from harness.precision import to_fp16; to_fp16('models/rtdetr/model.onnx', 'models/rtdetr/model_fp16.onnx')"
 ```
 
 **Build engine + verify realized precision:**
@@ -144,13 +159,13 @@ Non-obvious behaviors that fail silently if unhandled:
 ## Tests
 
 ```bash
-pytest -q     # 6 passed
+pytest -q tests/test_power.py tests/test_precision.py tests/test_trt_contract.py   # 8 passed, no data needed
 ```
 
-`tests/test_trt_contract.py` is an environment guard: it fails if a TensorRT upgrade restores the flag-based precision API, whose absence the precision strategy above depends on.
+`tests/test_trt_contract.py` is an environment guard: it fails if a TensorRT upgrade restores the flag-based precision API, whose absence the precision strategy above depends on. `tests/test_coco_eval.py` additionally needs COCO val2017 (`scripts/download_coco_val.sh`).
 
 ## Environment
 
-Python 3.13 (conda) · PyTorch cu132 · TensorRT 11.0.0.114 · Polygraphy 0.50.3 · ONNX Runtime 1.27 (CUDA EP) · NVIDIA ModelOpt 0.44 · CUDA 12 · RTX 4050 Laptop (sm_89), ~55 W envelope.
+Python 3.13 (conda) · PyTorch cu132 · TensorRT 11.0.0.114 · Polygraphy 0.50.3 · ONNX Runtime 1.27 (cu13 CUDA EP) · NVIDIA ModelOpt 0.44 (INT8 PTQ; isolated env) · CUDA 13 · RTX 4050 Laptop (sm_89), ~55 W envelope.
 
 RT-DETR is vendored as a submodule from [lyuwenyu/RT-DETR](https://github.com/lyuwenyu/RT-DETR) and consumed read-only.
