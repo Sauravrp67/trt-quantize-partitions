@@ -18,7 +18,7 @@ Work in progress. mAP is not yet measured; no accuracy claim is made.
 - [x] NVML power sampler (`harness/power.py`)
 - [x] TensorRT engine builder + per-layer precision readback (`harness/trt_runner.py`)
 - [x] TensorRT 11 API contract guard (`tests/test_trt_contract.py`)
-- [ ] COCO mAP evaluation
+- [x] COCO mAP evaluation
 - [ ] FP16 graph conversion + ModelOpt INT8 PTQ (Q/DQ ONNX)
 - [ ] Benchmark driver → `results/tables/baselines.md`
 - [ ] Layerwise sensitivity map → partition N-sweep → Pareto
