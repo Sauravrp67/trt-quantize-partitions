@@ -1,8 +1,11 @@
 *.onnx
 *.plan
+*.engine
+*.cache
 *.pth
 checkpoints/
 models/*/checkpoints/
+results/engines/
 results/figures/
 __pycache__/
 *.py[cod]
@@ -19,4 +22,3 @@ CLAUDE.md
 .codex
 .vscode
 data
-notebooks/
