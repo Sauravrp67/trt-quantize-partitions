@@ -244,6 +244,41 @@ def draw_side_by_side(
     _frame_readout(d, W, header_h, s, report)
     return canvas
 
+
+def draw_single(orig_pil: Image.Image, det, report: dict, class_names, *, score_thr: float = 0.0) -> Image.Image:
+    """One overlay panel under a compact HUD header (single-backend inference viewer).
+
+    Shares the aesthetic of :func:`draw_side_by_side`: confidence-shaded boxes, an accent
+    dot + backend name, an FPS pill, and an object count. ``report`` carries
+    ``backend`` (label string), ``ms`` (per-frame latency), ``id``, and ``n`` (detections).
+    """
+    panel = _draw_boxes(orig_pil, det, class_names, score_thr=score_thr)
+    W = panel.width
+    s = _clamp(W / 700.0, 0.85, 1.6)
+    header_h = int(round(46 * s))
+    H = header_h + panel.height
+
+    canvas = Image.new("RGB", (W, H), _BG)
+    canvas.paste(panel, (0, header_h))
+    d = ImageDraw.Draw(canvas, "RGBA")
+    d.line([(0, header_h - 1), (W, header_h - 1)], fill=_HAIRLINE, width=1)
+
+    cy = header_h * 0.5
+    accent = _ORT
+    dot_r = 4 * s
+    dcx = 15 * s
+    d.ellipse([dcx - dot_r, cy - dot_r, dcx + dot_r, cy + dot_r], fill=accent + (255,))
+    d.text((dcx + dot_r + 7 * s, cy), report.get("backend", "TRT"),
+           font=_font(int(15 * s), bold=True), fill=_NAME + (255,), anchor="lm")
+
+    n = report.get("n", len(det))
+    right_x = _pill(d, W - 12 * s, cy, f"{_fps(report.get('ms')):5.1f} FPS",
+                    _font(int(13 * s), bold=True), accent + (255,), _text_on(accent) + (255,), s)
+    d.text((right_x - 12 * s, cy), f"frame {report.get('id', 0)}   ·   {n} obj",
+           font=_font(int(11 * s)), fill=_MUTED + (255,), anchor="rm")
+    return canvas
+
+
 class FigureSink:
     """Save each side-by-side panel as a numbered JPG under ``out_dir``."""
 
@@ -346,8 +381,14 @@ def _gui_available() -> bool:
         return False
 
 
-def make_sink(kind: str, *, show: bool, save: bool, out_dir, source_stem: str, fps: float = 20.0):
-    """Choose output sinks for a source kind, degrading gracefully when headless."""
+def make_sink(kind: str, *, show: bool, save: bool, out_dir, source_stem: str,
+              fps: float = 20.0, stem_suffix: str = "_compare"):
+    """Choose output sinks for a source kind, degrading gracefully when headless.
+
+    ``stem_suffix`` is appended to the video filename (``<stem><suffix>.mp4``) so a
+    single-backend runner can write ``_trt.mp4`` while the comparison viewer keeps
+    ``_compare.mp4``.
+    """
     out_dir = Path(out_dir)
     sinks: List[object] = []
 
@@ -365,7 +406,7 @@ def make_sink(kind: str, *, show: bool, save: bool, out_dir, source_stem: str, f
         sinks.append(WindowSink())
     # Always leave an artifact for video/camera unless we are showing a live window.
     if save or not want_window:
-        sinks.append(VideoSink(out_dir / f"{source_stem}_compare.mp4", fps=fps))
+        sinks.append(VideoSink(out_dir / f"{source_stem}{stem_suffix}.mp4", fps=fps))
 
     if not sinks:
         sinks.append(FigureSink(out_dir / source_stem))

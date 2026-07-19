@@ -1,21 +1,3 @@
-"""RT-DETR torch vs ONNX Runtime side-by-side inference / parity.
-
-Runs the eager PyTorch RT-DETR model and its exported ONNX (``pipeline/model.onnx``)
-on the SAME input and compares their detections (boxes, labels, scores). Accepts a
-single image, a folder of images, or a video stream (a camera index or a video file).
-
-The model-agnostic engine lives in ``harness/`` (see ``harness/compare.py``); this file
-is the RT-DETR *adapter* — it knows how to build the model, preprocess a frame, and turn
-raw ``pred_logits``/``pred_boxes`` into pixel-space detections. A future NanoDet adapter
-would implement the same ``DetectorAdapter`` shape in ``models/nanodet/infer.py`` and
-reuse the engine unchanged.
-
-Examples:
-    python models/rtdetr/infer.py --source images/1.jpg --check
-    python models/rtdetr/infer.py --source images/
-    python models/rtdetr/infer.py --source clip.mp4 --save
-    python models/rtdetr/infer.py --source 0 --show
-"""
 from __future__ import annotations
 
 import argparse
@@ -36,23 +18,18 @@ if not RTDETR_SRC_ROOT.is_dir():
 sys.path.insert(0, str(REPO_ROOT))            # so `import harness` resolves
 sys.path.insert(0, str(RTDETR_PYTORCH_ROOT))  # so `import src` resolves
 
-# RT-DETR's top-level src/__init__.py eagerly imports data modules tied to old
-# torchvision beta APIs. Fabricate a bare `src` package pointing at the real dir so
-# `import src.*` loads the submodules we need without executing that __init__.
 src_pkg = types.ModuleType("src")
 src_pkg.__file__ = str(RTDETR_SRC_ROOT / "__init__.py")
 src_pkg.__path__ = [str(RTDETR_SRC_ROOT)]
 sys.modules["src"] = src_pkg
 
 from src.core import YAMLConfig  # noqa: E402
-import src.nn  # noqa: E402,F401  registers backbones for YAMLConfig
-import src.zoo  # noqa: E402,F401  registers RT-DETR model + postprocessor
+import src.nn  
+import src.zoo 
 
-from harness import run, verify_parity  # noqa: E402
+from harness import run, run_inference, verify_parity  # noqa: E402
 from harness.compare import Detections  # noqa: E402
 
-
-# Model label index 0..79 -> COCO-80 name (remap_mscoco_category=False -> contiguous ids).
 COCO_CLASSES = [
     "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat",
     "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
@@ -71,7 +48,6 @@ DEFAULT_CKPT = REPO_ROOT / "models/rtdetr/checkpoints/rtdetr_r18vd_dec3_6x_coco_
 DEFAULT_ONNX = REPO_ROOT / "models/rtdetr/model.onnx"
 IMG_SIZE = 640
 
-
 class RTDETRAdapter:
     """DetectorAdapter for RT-DETR r18vd. See harness.compare.DetectorAdapter."""
 
@@ -85,13 +61,10 @@ class RTDETRAdapter:
         self.device = device
 
         self._config = YAMLConfig(str(config_path), resume=str(ckpt_path))
-        # resume= only records a path; it does NOT load weights. Load explicitly, exactly
-        # like models/rtdetr/export.py, or the model stays randomly initialized.
         ckpt = torch.load(str(ckpt_path), map_location="cpu")
         state = ckpt["ema"]["module"] if "ema" in ckpt else ckpt["model"]
         self._config.model.load_state_dict(state)
 
-        # Postprocessor has no weights; build once and reuse across frames.
         self._postprocessor = self._config.postprocessor.deploy().to(device).eval()
 
     def build_torch(self) -> torch.nn.Module:
@@ -140,6 +113,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="RT-DETR torch vs ONNX Runtime side-by-side inference")
     parser.add_argument("--source", required=True,
                         help="image file | folder of images | video file | camera index (e.g. 0)")
+    parser.add_argument("--backend", choices=["torch-ort", "trt"], default="torch-ort",
+                        help="torch-ort: eager-vs-ONNX parity (default); trt: single-backend TensorRT")
+    parser.add_argument("--engine", default=None,
+                        help="[trt] prebuilt .engine to load; if omitted, build from --onnx")
+    parser.add_argument("--tf32", dest="tf32", action="store_true", default=True,
+                        help="[trt] allow TF32 tensor cores when building (default on)")
+    parser.add_argument("--no-tf32", dest="tf32", action="store_false",
+                        help="[trt] strict IEEE FP32 build")
     parser.add_argument("--onnx", default=str(DEFAULT_ONNX))
     parser.add_argument("--config", default=str(DEFAULT_CONFIG))
     parser.add_argument("--ckpt", default=str(DEFAULT_CKPT))
@@ -162,6 +143,28 @@ def main() -> None:
         device = "cpu"
 
     adapter = RTDETRAdapter(args.config, args.ckpt, args.onnx, device=device)
+
+    if args.backend == "trt":
+        if args.check:
+            print("[infer] --check (verify_parity) applies only to --backend torch-ort; ignoring.")
+        tf32 = getattr(args, "tf32", True)
+        run_inference(
+            adapter,
+            args.source,
+            engine=args.engine,
+            onnx_path=args.onnx,
+            tf32=tf32,
+            score_thr=args.score_thr,
+            show=args.show,
+            save=args.save,
+            out_dir=args.out,
+            warmup=args.warmup,
+            max_frames=args.max_frames,
+            source_label=_source_label(args.source),
+            backend_label=f"TRT · {'TF32' if tf32 else 'FP32-strict'}",
+        )
+        return
+
     providers = [p.strip() for p in args.providers.split(",") if p.strip()]
 
     if args.check:

@@ -1,11 +1,6 @@
 """Metrics, latency, and power-sampling harness.
 
-Timing helpers for comparing eager PyTorch vs ONNX Runtime (and, later, TensorRT)
-inference. ``LatencyMeter`` provides GPU-accurate (CUDA event) and wall-clock timers
-as context managers; ``Aggregate`` summarizes a stream of per-call timings while
-skipping warmup samples.
-
-TODO (still planned, not implemented here):
+TODO:
     - mAP evaluation adapters.
     - Throughput / perf-per-watt aggregation.
     - RTX 4050 power-cap sampling.
@@ -115,3 +110,29 @@ class LatencyMeter:
     def last(self) -> dict:
         """Most recent (torch_ms, ort_ms) pair for per-frame reporting."""
         return dict(self._last)
+
+
+class StreamTimer:
+    """Backend-neutral single-stream wall-clock timer for a one-backend inference loop.
+
+    ``time()`` wraps a call with ``time.perf_counter``; the measured milliseconds feed an
+    :class:`Aggregate` (warmup-skipping) and are cached in ``.last_ms``. Use for the TRT
+    inference viewer, where the runner (Polygraphy ``TrtRunner``) synchronizes internally,
+    so wall time is the honest *end-to-end* per-frame latency (H2D + compute + D2H).
+
+    Note: this is a *display* measure. The authoritative latency/throughput benchmark is
+    ``trtexec`` (CUDA-graph, pure-GPU-compute, percentiles) — see ``harness/trtexec.py``.
+    Do not quote these numbers as the benchmark.
+    """
+
+    def __init__(self, warmup: int = 1) -> None:
+        self.agg = Aggregate(warmup=warmup)
+        self.last_ms: float | None = None
+
+    @contextmanager
+    def time(self):
+        t0 = time.perf_counter()
+        yield
+        ms = (time.perf_counter() - t0) * 1000.0
+        self.agg.add(ms)
+        self.last_ms = ms
