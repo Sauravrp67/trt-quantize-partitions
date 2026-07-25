@@ -22,3 +22,4 @@ CLAUDE.md
 .codex
 .vscode
 data
+tmp/
