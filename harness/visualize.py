@@ -20,9 +20,13 @@ _BG = (15, 17, 23)          # canvas / HUD background
 _HAIRLINE = (255, 255, 255, 22)
 _TORCH = (255, 138, 76)     # warm accent -> PyTorch panel
 _ORT = (86, 156, 255)       # cool accent -> ONNX Runtime panel
+_TRT = (46, 204, 113)       # green accent -> TensorRT panel
 _MUTED = (150, 156, 168)
 _NAME = (240, 242, 245)
 _TRACK = (255, 255, 255, 30)  # meter/track fill on dark
+
+# accents cycled per panel in draw_compare (torch, ort, trt, then spares)
+_ACCENTS = [_TORCH, _ORT, _TRT, (194, 96, 245), (255, 196, 61)]
 
 
 @lru_cache(maxsize=32)
@@ -245,6 +249,63 @@ def draw_side_by_side(
     return canvas
 
 
+def _readout_line(d, W, header_h, s, parts):
+    """Center a ` · `-separated row of (text, color) at the bottom of the header."""
+    if not parts:
+        return
+    f = _font(int(11 * s))
+    sep = "   ·   "
+    widths = [d.textbbox((0, 0), t, font=f)[2] for t, _ in parts]
+    sep_w = d.textbbox((0, 0), sep, font=f)[2]
+    total = sum(widths) + sep_w * (len(parts) - 1)
+    x = W / 2 - total / 2
+    y = header_h - 12 * s
+    for i, (t, c) in enumerate(parts):
+        d.text((x, y), t, font=f, fill=c + (255,), anchor="lm")
+        x += widths[i]
+        if i < len(parts) - 1:
+            d.text((x, y), sep, font=f, fill=(90, 96, 108, 255), anchor="lm")
+            x += sep_w
+
+
+def draw_compare(orig_pil: Image.Image, entries, class_names, *, score_thr: float = 0.0,
+                 readout=None) -> Image.Image:
+    """N-panel comparison under one HUD (generalizes :func:`draw_side_by_side`).
+
+    ``entries``: list of ``{"label", "det", "ms", "accent"?}`` — one per backend, drawn
+    left→right, each with its own accent, FPS pill, and speed meter (bars share a scale).
+    ``readout``: optional list of ``(text, rgb)`` centered at the header bottom (e.g. the
+    per-backend agreement-vs-reference computed by the caller).
+    """
+    panels = [_draw_boxes(orig_pil, e["det"], class_names, score_thr=score_thr) for e in entries]
+    n = len(panels)
+    gap = 3
+    W = sum(p.width for p in panels) + gap * (n - 1)
+    s = _clamp(W / (520 * max(1, n)), 0.85, 1.6)
+    header_h = int(round(78 * s))
+    H = header_h + max(p.height for p in panels)
+
+    canvas = Image.new("RGB", (W, H), _BG)
+    d = ImageDraw.Draw(canvas, "RGBA")
+    fps_list = [_fps(e.get("ms")) for e in entries]
+    ref = max(fps_list + [1e-6])
+
+    x = 0
+    for i, (p, e) in enumerate(zip(panels, entries)):
+        canvas.paste(p, (x, header_h))
+        accent = e.get("accent") or _ACCENTS[i % len(_ACCENTS)]
+        _hud_panel(d, x, p.width, header_h, s, accent=accent, name=e["label"], subtitle="",
+                   fps=fps_list[i], fps_ref=ref, n=len(e["det"]))
+        if i < n - 1:
+            seam = x + p.width + gap // 2
+            d.line([(seam, header_h), (seam, H)], fill=_HAIRLINE, width=1)
+        x += p.width + gap
+
+    d.line([(0, header_h - 1), (W, header_h - 1)], fill=_HAIRLINE, width=1)
+    _readout_line(d, W, header_h, s, readout or [])
+    return canvas
+
+
 def draw_single(orig_pil: Image.Image, det, report: dict, class_names, *, score_thr: float = 0.0) -> Image.Image:
     """One overlay panel under a compact HUD header (single-backend inference viewer).
 
@@ -382,12 +443,13 @@ def _gui_available() -> bool:
 
 
 def make_sink(kind: str, *, show: bool, save: bool, out_dir, source_stem: str,
-              fps: float = 20.0, stem_suffix: str = "_compare"):
+              fps: float = 20.0, stem_suffix: str = "_compare", title: str = "detections"):
     """Choose output sinks for a source kind, degrading gracefully when headless.
 
     ``stem_suffix`` is appended to the video filename (``<stem><suffix>.mp4``) so a
     single-backend runner can write ``_trt.mp4`` while the comparison viewer keeps
-    ``_compare.mp4``.
+    ``_compare.mp4``. ``title`` names the live window so several backends running in
+    parallel each get a distinguishable window.
     """
     out_dir = Path(out_dir)
     sinks: List[object] = []
@@ -403,7 +465,7 @@ def make_sink(kind: str, *, show: bool, save: bool, out_dir, source_stem: str,
               "support, e.g. opencv-python-headless); saving an annotated video instead")
         save = True
     if want_window:
-        sinks.append(WindowSink())
+        sinks.append(WindowSink(title=title))
     # Always leave an artifact for video/camera unless we are showing a live window.
     if save or not want_window:
         sinks.append(VideoSink(out_dir / f"{source_stem}{stem_suffix}.mp4", fps=fps))
