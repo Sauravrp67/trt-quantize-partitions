@@ -3,6 +3,7 @@ import numpy as np
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 from PIL import Image
+from tqdm import tqdm
 from harness.compare import Detections
 from harness.paths import COCO_VAL_IMAGES, COCO_VAL_ANN
 
@@ -23,19 +24,21 @@ def detections_to_coco(image_id: int, det: Detections) -> list[dict]:
     return out
 
 
-def evaluate(run_fn, adapter, *, limit=None) -> dict:
+def evaluate(run_fn, adapter, *, limit=None, desc="COCO eval") -> dict:
     coco = COCO(str(COCO_VAL_ANN))
     img_ids = coco.getImgIds()
     if limit:
         img_ids = img_ids[:limit]
     results = []
-    for image_id in img_ids:
+    bar = tqdm(img_ids, desc=desc, unit="img", dynamic_ncols=True)
+    for image_id in bar:
         info = coco.loadImgs(image_id)[0]
         pil = Image.open(COCO_VAL_IMAGES / info["file_name"]).convert("RGB")
         x, meta = adapter.preprocess(pil)
         named = run_fn(x.detach().cpu().numpy())
         det = adapter.postprocess(named, meta)  # all queries; COCOeval handles thresholds
         results.extend(detections_to_coco(image_id, det))
+        bar.set_postfix(det=len(results), refresh=False)
     if not results:
         return {"mAP50": 0.0, "mAP5095": 0.0, "n_images": len(img_ids)}
     coco_dt = coco.loadRes(results)
