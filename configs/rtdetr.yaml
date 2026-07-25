@@ -1,0 +1,37 @@
+name: rtdetr
+
+# inline list, or a path to a YAML with `names:` (shared across COCO models)
+classes: ${configs}/classes/coco80.yaml
+
+model:
+  # upstream config inside the RT-DETR submodule (read-only — never edit in place)
+  config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_r101vd_6x_coco.yml
+  ckpt: ${models}/rtdetr/checkpoints/rtdetr_r101vd_2x_coco_objects365_from_paddle.pth
+
+onnx:
+  input_name: images
+  output_names: [pred_logits, pred_boxes]
+  img_size: 640
+  batch: 1
+  default: fp32
+  variants:
+    fp32: ${models}/rtdetr/model.onnx
+    fp16: ${models}/rtdetr/model_fp16.onnx
+    # int8:       ${models}/rtdetr/model_int8.onnx        # stage 02 (Q/DQ)
+    # partitioned: ${models}/rtdetr/model_partitioned.onnx # stage 04
+
+defaults:
+  device: cuda
+  backends: [torch, ort, trt]
+  providers: [CUDAExecutionProvider, CPUExecutionProvider]
+  score_thr: 0.6    
+  iou_thr: 0.5      
+  tf32: true        
+  warmup: 1
+
+outputs:
+  figures: ${figures}/infer/rtdetr
+  table: ${tables}/rtdetr_map.md
+  export_artifacts: ${models}/rtdetr/artifacts
+
+partition_spec: ${configs}/rtdetr_precision_partition.yaml

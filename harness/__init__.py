@@ -1,5 +1,6 @@
 from .adapter import Detections, DetectorAdapter
 from .compare import build_backend, match_detections, run, run_backends
+from .config import ModelSpec, load_spec
 from .infer_engine import TrtBackend, run_inference
 from .infer_ort import OrtBackend
 from .infer_torch import TorchBackend
@@ -13,6 +14,9 @@ __all__ = [
     # detections / adapter seam
     "Detections",
     "DetectorAdapter",
+    # config (static YAML spec) + paths (machine-dependent roots, re-exported above)
+    "ModelSpec",
+    "load_spec",
     # backends
     "TorchBackend",
     "OrtBackend",
