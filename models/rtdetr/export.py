@@ -1,100 +1,67 @@
-"""RT-DETR model export entrypoint placeholder.
+from __future__ import annotations
 
-Planned role:
-    Export an RT-DETR PyTorch checkpoint to a static batch=1 FP32 ONNX model
-    consumed by the shared pipeline.
-
-TODO:
-    - Load the selected RT-DETR implementation and checkpoint.
-    - Freeze preprocessing and dynamic-shape assumptions.
-    - Export FP32 ONNX with stable input/output names.
-    - Emit metadata needed by graph surgery and benchmark stages.
-"""
-from pathlib import Path
-import sys
-import types
-import torch
-import torch.nn as nn
 import argparse
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-RTDETR_PYTORCH_ROOT = REPO_ROOT / "RT-DETR" / "rtdetr_pytorch"
-RTDETR_SRC_ROOT = RTDETR_PYTORCH_ROOT / "src"
-if not RTDETR_SRC_ROOT.is_dir():
-    raise FileNotFoundError(f"RT-DETR PyTorch checkout not found: {RTDETR_PYTORCH_ROOT}")
+import _bootstrap  # noqa: F401  repo root on sys.path (must precede harness imports)
 
-sys.path.insert(0, str(REPO_ROOT))
-sys.path.insert(0, str(RTDETR_PYTORCH_ROOT))
+import torch  # noqa: E402
+import torch.nn as nn  # noqa: E402
 
-# RT-DETR's top-level src/__init__.py eagerly imports data modules that are not
-# needed for ONNX export and are tied to older torchvision beta APIs.
-src_pkg = types.ModuleType("src")
-src_pkg.__file__ = str(RTDETR_SRC_ROOT / "__init__.py")
-src_pkg.__path__ = [str(RTDETR_SRC_ROOT)]
-sys.modules["src"] = src_pkg
+from adapter import build_config  # noqa: E402
+from harness.config import load_spec  # noqa: E402
 
-from src.core import YAMLConfig
-import src.nn  # noqa: F401 - registers model/backbone classes for YAMLConfig
-import src.zoo  # noqa: F401 - registers RT-DETR and postprocessor classes
-from harness import verify_parity
 
 class RTDETRExportModel(nn.Module):
+    """Deploy-mode wrapper: the export graph is exactly what inference runs."""
+
     def __init__(self, config) -> None:
         super().__init__()
         self.model = config.model.deploy()
-    
+
     def forward(self, images):
-        outputs = self.model(images)
-        return outputs
-    
-def export(args,):
-    config = YAMLConfig(args.config, resume = args.ckpt)
+        return self.model(images)
 
-    if args.ckpt:
-        checkpoint = torch.load(args.ckpt, map_location = 'cpu')
-        if 'ema' in checkpoint:
-            state = checkpoint['ema']['module']
-        else:
-            state = checkpoint['model']
-    
-    config.model.load_state_dict(state)
 
-    data = torch.rand(1,3,640,640)
-    model = RTDETRExportModel(config=config)
-    _ = model(data)
+def export(spec, out_path, *, report: bool = True) -> None:
+    config = build_config(spec)
+    model = RTDETRExportModel(config)
+    data = torch.rand(spec.batch, 3, spec.img_size, spec.img_size)
+    _ = model(data)   # trace-warm the deploy path before exporting
 
-  
-    
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    artifacts = spec.outputs.get("export_artifacts")
     onnx_program = torch.onnx.export(
         model,
         (data,),
-        input_names = ['images'],
-        output_names=['pred_logits', 'pred_boxes'],
-        dynamo = True,
-        verbose = False,
+        input_names=[spec.input_name],
+        output_names=list(spec.output_names),
+        dynamo=True,
+        verbose=False,
         verify=True,
-        profile=True,
+        profile=report,
         keep_initializers_as_inputs=False,
-        report = True,
-        dump_exported_program=True,
-        artifacts_dir = "./artifacts"
+        report=report,
+        dump_exported_program=report,
+        artifacts_dir=str(artifacts) if artifacts else None,
     )
+    onnx_program.save(str(out_path))
+    print(f"[export] {spec.name}: batch={spec.batch} size={spec.img_size} "
+          f"in={spec.input_name} out={list(spec.output_names)} -> {out_path}")
 
-    onnx_program.initialize_inference_session()    
-    print(verify_parity(onnx_program._inference_session, model = model))
-    
-    
-    onnx_program.save(args.file_name)
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="RT-DETR checkpoint -> static batch=1 FP32 ONNX")
+    parser.add_argument("--spec", default="rtdetr", help="model spec name or configs/*.yaml path")
+    parser.add_argument("--onnx", default=None,
+                        help="destination: a variant name from the spec (default: its onnx.default) "
+                             "or an explicit path")
+    parser.add_argument("--no-report", dest="report", action="store_false", default=True,
+                        help="skip the profile/report/exported-program artifacts")
+    args = parser.parse_args()
+
+    spec = load_spec(args.spec)
+    export(spec, spec.onnx_path(args.onnx), report=args.report)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config', '-c', type=str, )
-    parser.add_argument('--ckpt', '-r', type=str, )
-    parser.add_argument('--file-name', '-f', type=str, default='./models/rtdetr/model.onnx')
-    parser.add_argument('--check',  action='store_true', default=False,)
-    parser.add_argument('--simplify',  action='store_true', default=False,)
-
-    args = parser.parse_args()
-
-    export(args)
+    main()
