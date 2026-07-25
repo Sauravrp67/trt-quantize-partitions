@@ -1,6 +1,6 @@
 # trt-quantize-partition
 
-Sensitivity-guided precision partitioning for a transformer detector (RT-DETR r18vd) on **TensorRT 11 / RTX 4050 (sm_89)**, measured for accuracy, latency, power, and perf-per-watt.
+Sensitivity-guided precision partitioning for a transformer detector (RT-DETR) on **TensorRT 11 / RTX 4050 (sm_89)**, measured for accuracy, latency, power, and perf-per-watt. Backbone and checkpoint are selected in `configs/rtdetr.yaml`; results below are r18vd.
 
 Work in progress.
 
@@ -16,8 +16,9 @@ Work in progress.
 - [x] NVML power sampler (`harness/power.py`)
 - [x] TensorRT engine builder — reproducible (timing cache + tactic-plan fingerprint), per-layer precision readback (`harness/trt_runner.py`)
 - [x] TensorRT 11 API contract guard (`tests/test_trt_contract.py`)
-- [x] Single-backend TensorRT inference runner — image / folder / video / camera (`harness/infer_engine.py`, `--backend trt`)
-- [x] COCO mAP evaluation
+- [x] Decoupled backends — torch / ORT / TensorRT as peers behind one runner (`harness/infer_{torch,ort,engine}.py`, `harness/runner.py`)
+- [x] COCO mAP evaluation — any backend, any precision variant (`harness/coco_eval.py`, `models/rtdetr/eval_map.py`)
+- [x] YAML model specs — static settings in `configs/*.yaml`, machine paths resolved in `harness/paths.py`
 - [x] FP16 graph conversion — FP32→FP16 ONNX, I/O kept FP32, converter-bug sanitized (`harness/precision.py`)
 - [ ] ModelOpt INT8 PTQ (Q/DQ ONNX)
 - [ ] Benchmark driver → `results/tables/baselines.md`
@@ -52,31 +53,44 @@ git clone --recurse-submodules <repo> && cd trt-quantize-partition
 pip install -r requirements.txt
 ```
 
-Checkpoint → `models/rtdetr/checkpoints/rtdetr_r18vd_dec3_6x_coco_from_paddle.pth`
-([upstream](https://github.com/lyuwenyu/RT-DETR)).
+Checkpoint → `models/rtdetr/checkpoints/` ([upstream](https://github.com/lyuwenyu/RT-DETR)).
 
-**Export** → `models/rtdetr/model.onnx` (`images [1,3,640,640]` → `pred_logits [1,300,80]`, `pred_boxes [1,300,4]`):
+**Configure.** Which checkpoint, which upstream config, ONNX filenames per precision, tensor
+names, image size, and CLI defaults all live in `configs/rtdetr.yaml`. Paths there are written
+against roots (`${models}`, `${rtdetr_pytorch}`, `${figures}`, …) resolved per machine by
+`harness/paths.py`, so nothing local is checked in. Every command below reads it; flags only
+override it, and `--onnx` takes a variant name (`fp32`, `fp16`) or a path.
 
 ```bash
-python models/rtdetr/export.py \
-  --config RT-DETR/rtdetr_pytorch/configs/rtdetr/rtdetr_r18vd_6x_coco.yml \
-  --ckpt   models/rtdetr/checkpoints/rtdetr_r18vd_dec3_6x_coco_from_paddle.pth
+python -c "from harness.config import load_spec; print(load_spec('rtdetr'))"   # what resolved where
 ```
 
-**Torch vs ONNX Runtime parity** — same tensor into both backends, same postprocessor, detections matched by same-label IoU:
+Roots are overridable per machine: `TRTQP_ROOT`, `TRTQP_DATA`, `TRTQP_COCO`, `TRTQP_RESULTS`, `RTDETR_ROOT`.
+
+**Export** → the spec's `fp32` variant (`images [1,3,640,640]` → `pred_logits [1,300,80]`, `pred_boxes [1,300,4]`):
 
 ```bash
-python models/rtdetr/infer.py --source images/1.jpg
-python models/rtdetr/infer.py --source images/
-python models/rtdetr/infer.py --source clip.mp4 --save
-python models/rtdetr/infer.py --source 0 --show
+python models/rtdetr/export.py                       # or: --onnx <variant|path> --no-report
 ```
 
-**TensorRT engine inference** — single backend, real images/video, same confidence-shaded overlay:
+**Inference** — each backend in its own window, or side-by-side with same-label IoU agreement
+against the first:
 
 ```bash
-python models/rtdetr/infer.py --backend trt --source images/1.jpg
-python models/rtdetr/infer.py --backend trt --source clip.mp4 --save   # builds from ONNX, or pass --engine <file>
+python models/rtdetr/infer.py --source images/1.jpg                        # spec's default backends
+python models/rtdetr/infer.py --source images/ --backends torch,ort --compare
+python models/rtdetr/infer.py --source clip.mp4 --backends trt --onnx fp16 --save
+python models/rtdetr/infer.py --source 0 --show                            # camera
+```
+
+TensorRT builds from the selected ONNX unless `--engine <file>` is given.
+
+**COCO mAP** — several precision variants in one pass; Δ columns are against the first:
+
+```bash
+python models/rtdetr/eval_map.py --backend torch                  # eager reference
+python models/rtdetr/eval_map.py --onnx fp32 fp16 --limit 500     # ORT
+python models/rtdetr/eval_map.py --backend trt --onnx fp16        # what actually ships
 ```
 
 **FP16 graph** — precision is declared in the ONNX (see the table above), not by a flag:
@@ -122,18 +136,27 @@ FP32 engine · RTX 4050 (sm_89) · batch=1 · 640×640 · CUDA graph · transfer
 | Engine size | 89.0 MiB |
 | Engine layers (post-fusion) | 286 |
 | Torch ↔ ORT detection agreement | 100% |
-| mAP@0.5:0.95 | not measured |
+| mAP@0.5:0.95 (eager, val2017 5000) | 0.4640 |
+| mAP@0.5 (eager, val2017 5000) | 0.6372 |
+
+Eager mAP matches the upstream r18vd number (46.5), so the checkpoint and postprocessor are
+wired correctly — it is the reference every exported/quantized variant is measured against
+(`results/tables/rtdetr_map.md`).
 
 ## Layout
 
 ```
-models/rtdetr/   export.py (ONNX) · infer.py (DetectorAdapter + CLI)
+models/rtdetr/   adapter.py (DetectorAdapter + submodule shim)
+                 export.py · infer.py · eval_map.py            (thin CLIs)
 models/nanodet/  reserved adapter seam                          [stub]
-harness/         compare · visualize · sources · metrics · power · parity
-                 · paths · trt_runner            (model-agnostic)
+harness/         adapter (seam) · infer_torch/infer_ort/infer_engine (backends)
+                 · runner · compare · visualize · sources · metrics · power
+                 · parity · coco_eval · precision · trt_runner
+                 · config (YAML specs) · paths (machine roots)  (model-agnostic)
 pipeline/        00..06 stages, one per NPU-compiler step       [stubs]
-configs/         precision-partition specs                      [stubs]
-tests/           power math · TensorRT 11 API contract
+configs/         rtdetr.yaml (model spec) · classes/coco80.yaml
+                 · precision-partition specs                    [stubs]
+tests/           power · precision · config · TensorRT 11 API contract
 scripts/         COCO download · GPU clock lock/unlock
 results/tables/  committed result tables
 RT-DETR/         upstream submodule — read-only, never modified
@@ -141,14 +164,18 @@ RT-DETR/         upstream submodule — read-only, never modified
 
 `*.onnx`, `*.engine`, `*.pth`, checkpoints, and `results/figures/` are gitignored.
 
-A detector plugs in by implementing `harness.compare.DetectorAdapter`
-(`build_torch` / `preprocess` / `postprocess`); everything in `harness/` is model-agnostic.
+A detector plugs in by writing a `configs/<model>.yaml` and implementing
+`harness.adapter.DetectorAdapter` (`build_torch` / `preprocess` / `postprocess`);
+everything in `harness/` is model-agnostic. Backends are peers — each exposes
+`label` / `infer(x) -> {name: ndarray}` / `close()`, so N of them run over one source with
+no per-backend branching.
 
 ## Implementation notes
 
 Non-obvious behaviors that fail silently if unhandled:
 
-- `YAMLConfig(resume=…)` records a checkpoint path but **does not load weights**. `models/rtdetr/export.py` and `infer.py` load `ckpt["ema"]["module"]` explicitly. An unloaded model is detectable only by logits clustered at the focal-loss prior bias (−log 99 ≈ −4.6).
+- `YAMLConfig(resume=…)` records a checkpoint path but **does not load weights**. `models/rtdetr/adapter.py::build_config` loads `ckpt["ema"]["module"]` explicitly. An unloaded model is detectable only by logits clustered at the focal-loss prior bias (−log 99 ≈ −4.6).
+- RT-DETR's `src/__init__.py` eagerly imports data modules tied to old torchvision beta APIs. `adapter.py::install_src_package` registers a fake `src` package in `sys.modules` first, then imports only `src.core` / `src.nn` / `src.zoo` — the submodule stays pristine.
 - RT-DETR's top-300 query selection has ties that break differently in torch vs ORT, so sub-threshold background queries reshuffle. Raw-logit `allclose` therefore fails by design; **decoded-detection agreement is the parity signal**, and matching must be same-label IoU, not positional.
 - Preprocessing is a plain 640×640 bilinear resize to [0,1]. **No ImageNet mean/std.**
 - `layer_precisions()` unions Inputs+Constants+Outputs: TensorRT fuses regions into single Myelin layers whose outputs sit on the FP32 I/O boundary even when the interior computes in FP16.
@@ -157,7 +184,7 @@ Non-obvious behaviors that fail silently if unhandled:
 ## Tests
 
 ```bash
-pytest -q tests/test_power.py tests/test_precision.py tests/test_trt_contract.py   # 8 passed, no data needed
+pytest -q tests/test_power.py tests/test_precision.py tests/test_trt_contract.py tests/test_config.py   # 15 passed, no data needed
 ```
 
 `tests/test_trt_contract.py` is an environment guard: it fails if a TensorRT upgrade restores the flag-based precision API, whose absence the precision strategy above depends on. `tests/test_coco_eval.py` additionally needs COCO val2017 (`scripts/download_coco_val.sh`).
