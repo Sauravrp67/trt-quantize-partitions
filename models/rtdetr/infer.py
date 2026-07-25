@@ -27,7 +27,7 @@ from src.core import YAMLConfig  # noqa: E402
 import src.nn  
 import src.zoo 
 
-from harness import run, run_inference, verify_parity  # noqa: E402
+from harness import run  # noqa: E402  build named backends + run (separate or compare)
 from harness.compare import Detections  # noqa: E402
 
 COCO_CLASSES = [
@@ -45,7 +45,7 @@ COCO_CLASSES = [
 
 DEFAULT_CONFIG = RTDETR_PYTORCH_ROOT / "configs/rtdetr/rtdetr_r18vd_6x_coco.yml"
 DEFAULT_CKPT = REPO_ROOT / "models/rtdetr/checkpoints/rtdetr_r18vd_dec3_6x_coco_from_paddle.pth"
-DEFAULT_ONNX = REPO_ROOT / "models/rtdetr/model.onnx"
+DEFAULT_ONNX = REPO_ROOT / "models/rtdetr/model_fp16.onnx"
 IMG_SIZE = 640
 
 class RTDETRAdapter:
@@ -110,31 +110,31 @@ def _source_label(source: str) -> str:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="RT-DETR torch vs ONNX Runtime side-by-side inference")
+    parser = argparse.ArgumentParser(description="RT-DETR multi-backend inference (torch / ort / trt)")
     parser.add_argument("--source", required=True,
                         help="image file | folder of images | video file | camera index (e.g. 0)")
-    parser.add_argument("--backend", choices=["torch-ort", "trt"], default="torch-ort",
-                        help="torch-ort: eager-vs-ONNX parity (default); trt: single-backend TensorRT")
+    parser.add_argument("--backends", default="torch,ort,trt",
+                        help="comma list from {torch,ort,trt}; each runs in its own window/video")
+    parser.add_argument("--compare", action="store_true",
+                        help="draw all backends side-by-side in ONE window, with agreement vs the first")
     parser.add_argument("--engine", default=None,
                         help="[trt] prebuilt .engine to load; if omitted, build from --onnx")
     parser.add_argument("--tf32", dest="tf32", action="store_true", default=True,
                         help="[trt] allow TF32 tensor cores when building (default on)")
     parser.add_argument("--no-tf32", dest="tf32", action="store_false",
                         help="[trt] strict IEEE FP32 build")
-    parser.add_argument("--onnx", default=str(DEFAULT_ONNX))
+    parser.add_argument("--onnx", default=str(DEFAULT_ONNX), help="ONNX for the ort/trt backends")
     parser.add_argument("--config", default=str(DEFAULT_CONFIG))
     parser.add_argument("--ckpt", default=str(DEFAULT_CKPT))
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--score-thr", type=float, default=0.6)
-    parser.add_argument("--iou-thr", type=float, default=0.5, help="IoU for torch/ORT agreement matching")
-    parser.add_argument("--out", default=str(REPO_ROOT / "results/figures/parity/rtdetr"))
-    parser.add_argument("--show", action="store_true", help="live cv2 window (auto-disabled if headless)")
-    parser.add_argument("--save", action="store_true", help="write an annotated output video (video/camera)")
+    parser.add_argument("--iou-thr", type=float, default=0.5, help="IoU for --compare agreement matching")
+    parser.add_argument("--out", default=str(REPO_ROOT / "results/figures/infer/rtdetr"))
+    parser.add_argument("--show", action="store_true", help="live cv2 window(s) (auto-disabled if headless)")
+    parser.add_argument("--save", action="store_true", help="write annotated output video(s)")
     parser.add_argument("--providers", default="CUDAExecutionProvider,CPUExecutionProvider")
     parser.add_argument("--max-frames", type=int, default=None)
     parser.add_argument("--warmup", type=int, default=1)
-    parser.add_argument("--check", action="store_true",
-                        help="run harness.verify_parity on a synthetic input before iterating")
     args = parser.parse_args()
 
     device = args.device
@@ -142,50 +142,21 @@ def main() -> None:
         print("[infer] CUDA unavailable; falling back to CPU")
         device = "cpu"
 
-    adapter = RTDETRAdapter(args.config, args.ckpt, args.onnx, device=device)
-
-    if args.backend == "trt":
-        if args.check:
-            print("[infer] --check (verify_parity) applies only to --backend torch-ort; ignoring.")
-        tf32 = getattr(args, "tf32", True)
-        run_inference(
-            adapter,
-            args.source,
-            engine=args.engine,
-            onnx_path=args.onnx,
-            tf32=tf32,
-            score_thr=args.score_thr,
-            show=args.show,
-            save=args.save,
-            out_dir=args.out,
-            warmup=args.warmup,
-            max_frames=args.max_frames,
-            source_label=_source_label(args.source),
-            backend_label=f"TRT · {'TF32' if tf32 else 'FP32-strict'}",
-        )
-        return
-
+    names = [b.strip() for b in args.backends.split(",") if b.strip()]
     providers = [p.strip() for p in args.providers.split(",") if p.strip()]
-
-    if args.check:
-        import onnxruntime as ort
-
-        print("[infer] verify_parity (synthetic input, RAW pred_logits/pred_boxes):")
-        session = ort.InferenceSession(str(adapter.onnx_path), providers=providers)
-        verify_parity(session, adapter.build_torch())
-        print(
-            "[infer] NOTE: raw-output parity is EXPECTED to FAIL for RT-DETR. Its decoder\n"
-            "        selects the top-300 queries with a topk whose ties break differently in\n"
-            "        torch vs ORT, so a few sub-threshold background queries diverge. The\n"
-            "        authoritative signal is the per-detection summary below (above threshold).\n"
-        )
+    adapter = RTDETRAdapter(args.config, args.ckpt, args.onnx, device=device)
 
     run(
         adapter,
         args.source,
+        names,
+        compare=args.compare,
+        providers=providers,
+        engine=args.engine,
+        onnx_path=args.onnx,
+        tf32=args.tf32,
         score_thr=args.score_thr,
         iou_thr=args.iou_thr,
-        providers=providers,
         show=args.show,
         save=args.save,
         out_dir=args.out,
