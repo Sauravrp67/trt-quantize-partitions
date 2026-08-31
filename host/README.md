@@ -1,6 +1,6 @@
 # Host model preparation
 
-Use this workflow to export custom checkpoints, convert precision, calibrate INT8 models, or work on sensitivity and partitioning. To run a prepared ONNX model, use [Jetson deployment](../deploy/README.md).
+Use this workflow to export custom checkpoints, convert precision, calibrate INT8 models, or work on sensitivity and partitioning. To run a prepared ONNX model, use the [C++ runtime](../cpp/README.md).
 
 ## Environment
 
@@ -49,7 +49,7 @@ ssh jetson 'mkdir -p ~/rtdetr/artifacts/onnx'
 scp host/models/rtdetr/model_r101.fp16.onnx jetson:~/rtdetr/artifacts/onnx/
 ```
 
-Copy external tensor data alongside the ONNX when present. On the board, use `deploy/build_engines.sh` and `deploy/infer.py`. If the repo is not cloned there, also copy the complete `deploy/` directory as described in its README.
+Copy external tensor data alongside the ONNX when present. On the board, build the C++ runtime and use `cpp/build_engine.sh` and `cpp/build/rtdetr-infer` as described in the [runtime README](../cpp/README.md).
 
 ## Host evaluation and development
 
@@ -59,7 +59,7 @@ python host/models/rtdetr/eval_map.py \
   --out results/tables/host_r101_map.md
 ```
 
-`--backend trt` builds engines in the host environment; it does not measure existing Jetson plans. For deployment accuracy, use `deploy/eval_map.py` on the board.
+`--backend trt` builds engines in the host environment; it does not measure existing Jetson plans. The C++ runtime currently provides video inference and timing, not a COCO evaluation CLI.
 
 | Directory | Responsibility |
 | --- | --- |
@@ -72,15 +72,15 @@ python host/models/rtdetr/eval_map.py \
 
 Datasets, results, and the upstream `RT-DETR/` submodule remain at the repository root. `TRTQP_ROOT` refers to that root; `TRTQP_COCO`, `TRTQP_DATA`, `TRTQP_RESULTS`, and `RTDETR_ROOT` still override their respective locations. To import `harness` interactively, run Python from `host/` or set `PYTHONPATH=host` from the repository root.
 
-From the repository root, run the host tests with `python -m pytest host/tests`. Tests that need models, COCO, TensorRT, or CUDA require those resources; the standalone deployment tests are separate under `deploy/tests/`.
+From the repository root, run the host tests with `python -m pytest host/tests`. Tests that need models, COCO, TensorRT, or CUDA require those resources; C++ tests run with `ctest --test-dir cpp/build`.
 
 ## Directory migration
 
 | Previous location | Current location |
 | --- | --- |
 | `harness/`, `models/`, `configs/`, `pipeline/`, `tests/` | The same directories under `host/`. |
-| `requirements.txt` | `host/requirements.txt`; Jetson has separate requirements under `deploy/`. |
-| `scripts/jetson/` or `jetson/scripts/jetson/` | `deploy/`; `infer_jetson.py` is now `infer.py`. |
+| `requirements.txt` | `host/requirements.txt`; C++ deployment dependencies are listed in `cpp/README.md`. |
+| `scripts/jetson/` or `jetson/scripts/jetson/` | Replaced by the C++ runtime under `cpp/`. |
 | `jetson/model_r101*.onnx` | `artifacts/onnx/`. |
 | `jetson/engines/` | `artifacts/engines/`; historical logs are in `results/jetson/builds/`. |
 | `jetson/results/tables/jetson_r101.md` | `results/jetson/benchmark.md`. |

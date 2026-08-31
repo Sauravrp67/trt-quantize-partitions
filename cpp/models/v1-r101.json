@@ -1,0 +1,12 @@
+{
+  "name": "RT-DETR R101-vd COCO+Objects365",
+  "version": "v1",
+  "image_input": "images",
+  "width": 640,
+  "height": 640,
+  "classes": 80,
+  "top_k": 300,
+  "output_kind": "raw_queries",
+  "logits_output": "pred_logits",
+  "boxes_output": "pred_boxes"
+}

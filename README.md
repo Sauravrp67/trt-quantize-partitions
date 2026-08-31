@@ -1,8 +1,8 @@
-# RT-DETR on Jetson Orin Nano
+# RT-DETR TensorRT C++ inference and Jetson benchmarks
 
-TensorRT deployment and precision benchmarking for RT-DETR on **NVIDIA Jetson Orin Nano**. The project compares FP32, FP16, and INT8 inference on UAV video, measuring latency, pipeline throughput, board power, and energy per frame.
+TensorRT C++ inference for developer-supplied RT-DETR ONNX models, with recorded precision benchmarks on **NVIDIA Jetson Orin Nano**. The runtime builds a TensorRT plan on the target machine and runs video inference through the TensorRT C++ API. ONNX export, quantization, and model training are separate preparation steps.
 
-The measured model is **RT-DETR R101-vd**, using the Objects365-pretrained checkpoint, with batch size 1 and a 640 × 640 input. Choose the [Jetson deployment workflow](deploy/README.md) to run prepared models, or the [host preparation workflow](host/README.md) to export and quantize custom weights.
+The recorded Jetson precision study used **RT-DETR R101-vd**, an Objects365-pretrained checkpoint, batch size 1, and a 640 × 640 input. For current deployment, use the [C++ runtime](cpp/README.md). The [host experiments](host/README.md) remain available for model preparation and analysis.
 
 ## Demo
 
@@ -43,37 +43,34 @@ Source: [recorded results](results/jetson/benchmark.md). All recorded runs are s
 
 The results table does not record the power mode, clock settings, or full run commands. These are recorded runs rather than a controlled accuracy benchmark. Mean detections per frame were 17.65 for FP32, 17.67 for FP16, and 15.48 for INT8; detection counts alone do not establish accuracy. Jetson mAP results are not included.
 
-## Run on Jetson
+## Run C++ inference
 
-Clone directly onto the board. The deployment workflow does not require the RT-DETR submodule, PyTorch, torchvision, or ONNX Runtime.
+Clone onto the target machine. The C++ runtime does not require the RT-DETR submodule, PyTorch, or ONNX Runtime. Install TensorRT C++ headers and libraries, CUDA, OpenCV with video I/O, CMake, and a C++17 compiler.
 
 ```bash
 git clone https://github.com/Sauravrp67/trt-quantize-partitions.git
 cd trt-quantize-partitions
-bash deploy/setup.sh
-source .venv-jetson/bin/activate
+cmake -S cpp -B cpp/build -DCMAKE_BUILD_TYPE=Release
+cmake --build cpp/build -j
+ctest --test-dir cpp/build --output-on-failure
 ```
 
-Supply a prepared RT-DETR ONNX model. Model release downloads are not published yet; use an existing export or prepare one with the host tools.
+Supply a prepared RT-DETR ONNX model. Select a matching tensor contract from `cpp/models/`, then build a plan on the machine that will run it:
 
 ```bash
-python deploy/import_model.py \
-  --source /path/to/model_r101.fp16.onnx \
-  --out artifacts/onnx/model_r101.fp16.onnx
+./cpp/build_engine.sh /path/to/model_r101.fp16.onnx \
+  artifacts/engines/model_r101.fp16.plan
 
-bash deploy/build_engines.sh -o artifacts/engines \
-  artifacts/onnx/model_r101.fp16.onnx
-
-python deploy/infer.py \
+cpp/build/rtdetr-infer \
+  --model cpp/models/v1-r101.json \
   --engine artifacts/engines/model_r101.fp16.plan \
   --source /path/to/input.mp4 \
-  --save artifacts/output/fp16.mp4 \
-  --score-thr 0.5 --power
+  --save artifacts/output/fp16.mp4 --score-thr 0.5 --power
 ```
 
-Use `--source 0 --show` for a camera or a stream URL for network video. Engine plans are built on the target board and reused for inference. The current runtime supports static RT-DETR exports with batch 1 and a 640 × 640 input.
+Add `--show` to display video; `--save` alone writes an MP4 headlessly. Use `--source 0` for a camera. Engine plans are built on the target GPU and reused for inference. The runtime supports batch 1 and fixed image dimensions defined in the contract; an arbitrary ONNX export is not automatically compatible.
 
-See [deployment instructions](deploy/README.md) for dependencies, model import, saved-engine COCO evaluation, power measurement, and copying only the runtime folder to a board.
+See the [C++ instructions](cpp/README.md) for TensorRT shape profiles, model contracts, runtime options, and a same-plan Python timing comparison. The historical Jetson table above came from the previous Python deployment workflow; the [C++ validation record](cpp/results/validation.md) reports separate same-plan comparisons.
 
 ## Export and quantize on a host
 
@@ -95,21 +92,21 @@ bash scripts/download_coco_val.sh
 python host/pipeline/quantize.py --backbone r101vd --calib 200
 ```
 
-The three outputs are `host/models/rtdetr/model_r101.onnx`, `model_r101.fp16.onnx`, and `model_r101.int8.onnx`. The INT8 script calibrates with COCO images and writes quantize/dequantize nodes into the ONNX graph. FP16 types are also encoded in its ONNX graph. Copy the desired ONNX files to `artifacts/onnx/` on the Jetson, then build their engines there with `deploy/build_engines.sh`; each engine keeps the precision specified by its graph. The Jetson runtime only builds and executes these prepared models.
+The three outputs are `host/models/rtdetr/model_r101.onnx`, `model_r101.fp16.onnx`, and `model_r101.int8.onnx`. The INT8 script calibrates with COCO images and writes quantize/dequantize nodes into the ONNX graph. FP16 types are also encoded in its ONNX graph. Copy the desired ONNX files to the target machine, then build their engines there with `cpp/build_engine.sh`; each engine keeps the precision specified by its graph.
 
-See [host preparation](host/README.md) for the full environment and transfer workflow. To compare deployed accuracy, evaluate the saved Jetson engines with [COCO evaluation](deploy/README.md#evaluate-the-deployed-engines).
+See [host preparation](host/README.md) for its environment and export workflow. The host experiments are separate from the C++ deployment runtime.
 
 ## Repository layout
 
 | Path | Contents |
 | --- | --- |
-| [deploy/](deploy/) | Self-contained Jetson setup, model import, engine build, inference, and COCO evaluation. |
+| [cpp/](cpp/) | TensorRT C++ library and CLI, ONNX-to-plan builder, model contracts, native tests, and Python timing comparison. |
 | [host/](host/) | Model export, quantization, host harness, configurations, experiments, and tests. |
 | `artifacts/` | Local deployment ONNX models, engines, recordings, and evaluation outputs; excluded from Git. |
 | `data/` | Local datasets; excluded from Git. |
 | [results/jetson/](results/jetson/) | Recorded Jetson measurements and engine build logs. |
 | [samples/](samples/) | Sample recording information; large local videos are excluded from Git. |
-| [scripts/](scripts/) | Dataset download helpers. |
+| [scripts/](scripts/) | Dataset download helpers for host experiments. |
 | [RT-DETR/](RT-DETR/) | Upstream submodule, needed only for host preparation. |
 
 The measured Jetson workflow covers FP32, FP16, and INT8 deployment. Sensitivity-guided partitioning remains under development and is not part of the results above.

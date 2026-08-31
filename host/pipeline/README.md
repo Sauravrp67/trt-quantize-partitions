@@ -55,7 +55,7 @@ python host/pipeline/sensitivity_map.py \
 
 The sensitivity report measures intermediate tensor differences against FP32. It screens nodes for further investigation; it does not measure mAP or prove that a node causes an accuracy drop. Run `host/models/rtdetr/eval_map.py` for COCO mAP.
 
-`partition.py`, `compile_inspect.py`, and `benchmark.py` are placeholders and do not yet perform their described work. For TensorRT engine builds and Jetson inference, use [`deploy/`](../../deploy/README.md).
+`partition.py`, `compile_inspect.py`, and `benchmark.py` are placeholders and do not yet perform their described work. For TensorRT engine builds and Jetson inference, use [`cpp/`](../../cpp/README.md).
 
 ## Scripts
 

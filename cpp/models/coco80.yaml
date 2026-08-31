@@ -1,8 +1,7 @@
 # COCO 2017 detection classes, 80 contiguous ids.
 #
 # List position IS the model's class id (0 = person). This is the *contiguous* labelling
-# detectors emit — not COCO's sparse 1..90 category_ids, which the evaluator maps to via
-# harness.coco_eval.COCO80_TO_CATID. Shared by every COCO-trained model in the repo.
+# detectors emit; src/eval.cpp maps these IDs to COCO's sparse category IDs.
 names:
   - person
   - bicycle

@@ -1,0 +1,19 @@
+{
+  "name": "RT-DETRv2 R50-vd",
+  "version": "v2",
+  "image_input": "images",
+  "width": 640,
+  "height": 640,
+  "classes": 80,
+  "top_k": 300,
+  "output_kind": "decoded",
+  "auxiliary_inputs": [
+    {
+      "name": "orig_target_sizes",
+      "value": "original_wh"
+    }
+  ],
+  "labels_output": "labels",
+  "boxes_output": "boxes",
+  "scores_output": "scores"
+}
