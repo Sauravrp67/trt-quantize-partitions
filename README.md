@@ -1,196 +1,135 @@
-# trt-quantize-partition
+# RT-DETR on Jetson Orin Nano
 
-Sensitivity-guided precision partitioning for a transformer detector (RT-DETR) on **TensorRT 11 / RTX 4050 (sm_89)**, measured for accuracy, latency, power, and perf-per-watt. Backbone and checkpoint are selected in `configs/rtdetr.yaml`; results below are r18vd.
+TensorRT deployment and precision benchmarking for RT-DETR on **NVIDIA Jetson Orin Nano**. The project compares FP32, FP16, and INT8 inference on UAV video, measuring latency, pipeline throughput, board power, and energy per frame.
 
-Work in progress.
+The measured model is **RT-DETR R101-vd**, using the Objects365-pretrained checkpoint, with batch size 1 and a 640 × 640 input. The repository includes ONNX export and precision tooling, a standalone Jetson inference runner, engine build scripts, and recorded results.
 
-## Status
+## Demo
 
-- [x] ONNX export — static batch=1, opset 20, parity-verified against eager
-- [x] PyTorch (eager) runner
-- [x] ONNX Runtime runner
-- [x] Torch↔ORT decoded-detection parity (100% agreement, `harness/compare.py`)
-- [x] Detection visualizer — per-class hue, score-continuous shading (`harness/visualize.py`)
-- [x] Frame sources — image / folder / video / camera (`harness/sources.py`)
-- [x] Latency metering — CUDA events (`harness/metrics.py`)
-- [x] NVML power sampler (`harness/power.py`)
-- [x] TensorRT engine builder — reproducible (timing cache + tactic-plan fingerprint), per-layer precision readback (`harness/trt_runner.py`)
-- [x] TensorRT 11 API contract guard (`tests/test_trt_contract.py`)
-- [x] Decoupled backends — torch / ORT / TensorRT as peers behind one runner (`harness/infer_{torch,ort,engine}.py`, `harness/runner.py`)
-- [x] COCO mAP evaluation — any backend, any precision variant (`harness/coco_eval.py`, `models/rtdetr/eval_map.py`)
-- [x] YAML model specs — static settings in `configs/*.yaml`, machine paths resolved in `harness/paths.py`
-- [x] FP16 graph conversion — FP32→FP16 ONNX, I/O kept FP32, converter-bug sanitized (`harness/precision.py`)
-- [ ] ModelOpt INT8 PTQ (Q/DQ ONNX)
-- [ ] Benchmark driver → `results/tables/baselines.md`
-- [ ] Layerwise sensitivity map → partition N-sweep → Pareto
-- [ ] Fused MSDeformAttn CUDA plugin (sm_89) + Nsight profile
+Annotated recordings of the UAV sequence. FP32 and INT8 show all 468 frames; the FP16 sample is a 174-frame excerpt.
 
-## TensorRT 11 constraints
+**FP32**
 
-Verified against `tensorrt==11.0.0.114`; pinned by `tests/test_trt_contract.py`.
+https://github.com/user-attachments/assets/0a343da5-3e62-446c-9345-5e2c73258c4e
 
-- `trt.BuilderFlag` exposes no `FP16` / `INT8` / `BF16` / `FP8`. Only `TF32`.
-- `builder.create_network(0)` is always `STRONGLY_TYPED`. No weakly-typed mode.
-- `trt.ILayer.precision` / `.set_output_type` and `trt.IInt8Calibrator` do not exist.
-- `trtexec --stronglyTyped` is a no-op; there is no `--fp16` / `--int8` / `--layerPrecisions`.
-- `polygraphy.CreateConfig(fp16=True)` raises.
+**FP16**
 
-Consequence: **precision is declared in the ONNX graph, not by a builder flag.** `build_engine()` takes no `precision` argument.
+https://github.com/user-attachments/assets/cf8699f0-ccb5-40eb-bb9c-a7b373d4a8f1
 
-| Config | Declared by |
-| --- | --- |
-| FP32 | graph as exported |
-| FP16 | FP16 weights + `Cast` at the I/O boundary |
-| INT8 | `QuantizeLinear` / `DequantizeLinear` nodes |
-| Partitioned | FP16/Q-DQ with a node block list (sensitive layers held higher) |
+**INT8**
 
-`TF32` is on by default in TensorRT and silently cleared by `polygraphy.CreateConfig()`. `build_engine()` builds `IBuilderConfig` by hand and takes `tf32` explicitly; it is reported as a benchmark variable.
+https://github.com/user-attachments/assets/0c26c084-7622-4f27-8fcc-29ad178c9006
 
-## Reproduce
-
-```bash
-git clone --recurse-submodules <repo> && cd trt-quantize-partition
-pip install -r requirements.txt
-```
-
-Checkpoint → `models/rtdetr/checkpoints/` ([upstream](https://github.com/lyuwenyu/RT-DETR)).
-
-**Configure.** Which checkpoint, which upstream config, ONNX filenames per precision, tensor
-names, image size, and CLI defaults all live in `configs/rtdetr.yaml`. Paths there are written
-against roots (`${models}`, `${rtdetr_pytorch}`, `${figures}`, …) resolved per machine by
-`harness/paths.py`, so nothing local is checked in. Every command below reads it; flags only
-override it, and `--onnx` takes a variant name (`fp32`, `fp16`) or a path.
-
-```bash
-python -c "from harness.config import load_spec; print(load_spec('rtdetr'))"   # what resolved where
-```
-
-Roots are overridable per machine: `TRTQP_ROOT`, `TRTQP_DATA`, `TRTQP_COCO`, `TRTQP_RESULTS`, `RTDETR_ROOT`.
-
-**Export** → the spec's `fp32` variant (`images [1,3,640,640]` → `pred_logits [1,300,80]`, `pred_boxes [1,300,4]`):
-
-```bash
-python models/rtdetr/export.py                       # or: --onnx <variant|path> --no-report
-```
-
-**Inference** — each backend in its own window, or side-by-side with same-label IoU agreement
-against the first:
-
-```bash
-python models/rtdetr/infer.py --source images/1.jpg                        # spec's default backends
-python models/rtdetr/infer.py --source images/ --backends torch,ort --compare
-python models/rtdetr/infer.py --source clip.mp4 --backends trt --onnx fp16 --save
-python models/rtdetr/infer.py --source 0 --show                            # camera
-```
-
-TensorRT builds from the selected ONNX unless `--engine <file>` is given.
-
-**COCO mAP** — several precision variants in one pass; Δ columns are against the first:
-
-```bash
-python models/rtdetr/eval_map.py --backend torch                  # eager reference
-python models/rtdetr/eval_map.py --onnx fp32 fp16 --limit 500     # ORT
-python models/rtdetr/eval_map.py --backend trt --onnx fp16        # what actually ships
-```
-
-**FP16 graph** — precision is declared in the ONNX (see the table above), not by a flag:
-
-```bash
-python -c "from harness.precision import to_fp16; to_fp16('models/rtdetr/model.onnx', 'models/rtdetr/model_fp16.onnx')"
-```
-
-**Build engine + verify realized precision:**
-
-```python
-import numpy as np
-from harness.trt_runner import build_engine, save_engine, TRTSession, layer_precisions
-
-engine = build_engine("models/rtdetr/model.onnx", tf32=True)   # precision comes from the graph
-save_engine(engine, "results/engines/rtdetr_fp32.engine")
-layer_precisions(engine)                                       # {layer: {"Float"|"Half"|"Int8"}}
-
-sess = TRTSession(engine)
-sess.run(np.random.rand(1, 3, 640, 640).astype("float32"))
-sess.close()
-```
-
-**Benchmark** (build in Python so the builder config is pinned; time with `trtexec`):
-
-```bash
-bash scripts/lock_clocks.sh
-trtexec --loadEngine=results/engines/rtdetr_fp32.engine --useCudaGraph --noDataTransfers
-bash scripts/unlock_clocks.sh
-```
-
-`TrtRunner` wall-clock and `trtexec` GPU-compute time are not comparable; do not mix them.
+The recordings show detections and runtime statistics. Video playback uses the source frame rate; measured inference throughput is reported below.
 
 ## Results
 
-FP32 engine · RTX 4050 (sm_89) · batch=1 · 640×640 · CUDA graph · transfers excluded.
+Jetson Orin Nano · TensorRT 10.16.2 · RT-DETR R101-vd · batch 1 · 640 × 640 input · 468 frames per run.
 
-| | |
-| --- | --- |
-| GPU compute latency p50 | 8.23 ms |
-| p90 / p99 | 8.47 / 8.87 ms |
-| Throughput | 121 qps |
-| Engine size | 89.0 MiB |
-| Engine layers (post-fusion) | 286 |
-| Torch ↔ ORT detection agreement | 100% |
-| mAP@0.5:0.95 (eager, val2017 5000) | 0.4640 |
-| mAP@0.5 (eager, val2017 5000) | 0.6372 |
+| Precision | Run | Inference p50 (ms) | Inference p90 (ms) | End-to-end p50 (ms) | Pipeline FPS | Mean board power (W) | Energy (J/frame) |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| FP32 | 1 | 79.86 | 83.34 | 129.46 | 7.48 | 15.29 | 2.044 |
+| FP32 | 2 | 79.85 | 87.16 | 136.81 | 7.06 | 14.79 | 2.095 |
+| FP16 | 1 | 42.83 | 44.98 | 101.10 | 9.54 | 10.34 | 1.084 |
+| INT8 | 1 | 31.58 | 35.75 | 88.42 | 10.83 | 8.33 | 0.769 |
+| INT8 | 2 | 31.85 | 35.71 | 89.34 | 10.76 | 8.29 | 0.770 |
 
-Eager mAP matches the upstream r18vd number (46.5), so the checkpoint and postprocessor are
-wired correctly — it is the reference every exported/quantized variant is measured against
-(`results/tables/rtdetr_map.md`).
+Source: [recorded results](jetson/results/tables/jetson_r101.md). All recorded runs are shown; run numbers follow their order within each precision variant.
 
-## Layout
+- **Inference latency** is wall-clock time around the TensorRT runner, including host/device transfers and runner overhead.
+- **End-to-end latency** includes preprocessing, inference, postprocessing, and drawing/video writing when enabled. It excludes frame capture/decode.
+- **Pipeline FPS** is processed frames divided by total loop time, including frame capture/decode.
+- **Board power** is the mean `VDD_IN` reading from `tegrastats`. Energy per frame is mean board power divided by pipeline FPS.
 
-```
-models/rtdetr/   adapter.py (DetectorAdapter + submodule shim)
-                 export.py · infer.py · eval_map.py            (thin CLIs)
-models/nanodet/  reserved adapter seam                          [stub]
-harness/         adapter (seam) · infer_torch/infer_ort/infer_engine (backends)
-                 · runner · compare · visualize · sources · metrics · power
-                 · parity · coco_eval · precision · trt_runner
-                 · config (YAML specs) · paths (machine roots)  (model-agnostic)
-pipeline/        00..06 stages, one per NPU-compiler step       [stubs]
-configs/         rtdetr.yaml (model spec) · classes/coco80.yaml
-                 · precision-partition specs                    [stubs]
-tests/           power · precision · config · TensorRT 11 API contract
-scripts/         COCO download · GPU clock lock/unlock
-results/tables/  committed result tables
-RT-DETR/         upstream submodule — read-only, never modified
-```
+The results table does not record the power mode, clock settings, or full run commands. These are recorded runs rather than a controlled accuracy benchmark. Mean detections per frame were 17.65 for FP32, 17.67 for FP16, and 15.48 for INT8; detection counts alone do not establish accuracy. Jetson mAP results are not included.
 
-`*.onnx`, `*.engine`, `*.pth`, checkpoints, and `results/figures/` are gitignored.
+## Requirements
 
-A detector plugs in by writing a `configs/<model>.yaml` and implementing
-`harness.adapter.DetectorAdapter` (`build_torch` / `preprocess` / `postprocess`);
-everything in `harness/` is model-agnostic. Backends are peers — each exposes
-`label` / `infer(x) -> {name: ndarray}` / `close()`, so N of them run over one source with
-no per-backend branching.
+For inference on the Jetson:
 
-## Implementation notes
+- TensorRT with Python bindings and `trtexec`; the supplied build logs report **10.16.2**.
+- Python with NumPy, OpenCV, Pillow, Polygraphy, and PyYAML.
+- `tegrastats` for power measurement.
+- Exported RT-DETR ONNX models for engine building, or compatible TensorRT plans built on the target board.
 
-Non-obvious behaviors that fail silently if unhandled:
-
-- `YAMLConfig(resume=…)` records a checkpoint path but **does not load weights**. `models/rtdetr/adapter.py::build_config` loads `ckpt["ema"]["module"]` explicitly. An unloaded model is detectable only by logits clustered at the focal-loss prior bias (−log 99 ≈ −4.6).
-- RT-DETR's `src/__init__.py` eagerly imports data modules tied to old torchvision beta APIs. `adapter.py::install_src_package` registers a fake `src` package in `sys.modules` first, then imports only `src.core` / `src.nn` / `src.zoo` — the submodule stays pristine.
-- RT-DETR's top-300 query selection has ties that break differently in torch vs ORT, so sub-threshold background queries reshuffle. Raw-logit `allclose` therefore fails by design; **decoded-detection agreement is the parity signal**, and matching must be same-label IoU, not positional.
-- Preprocessing is a plain 640×640 bilinear resize to [0,1]. **No ImageNet mean/std.**
-- `layer_precisions()` unions Inputs+Constants+Outputs: TensorRT fuses regions into single Myelin layers whose outputs sit on the FP32 I/O boundary even when the interior computes in FP16.
-- MSDeformAttn materializes in the exported ONNX as **9 `GridSample` nodes** — simultaneously the decoder latency hotspot and a precision-sensitive op.
-
-## Tests
+The standalone Jetson runner does not require PyTorch or the RT-DETR submodule. Use a Python environment that can import the board's TensorRT bindings:
 
 ```bash
-pytest -q tests/test_power.py tests/test_precision.py tests/test_trt_contract.py tests/test_config.py   # 15 passed, no data needed
+python3 -m venv --system-site-packages .venv-jetson
+source .venv-jetson/bin/activate
+python -m pip install numpy pillow pyyaml polygraphy
+python -c "import tensorrt, cv2, PIL, numpy, polygraphy, yaml; print(tensorrt.__version__)"
 ```
 
-`tests/test_trt_contract.py` is an environment guard: it fails if a TensorRT upgrade restores the flag-based precision API, whose absence the precision strategy above depends on. `tests/test_coco_eval.py` additionally needs COCO val2017 (`scripts/download_coco_val.sh`).
+This assumes OpenCV and TensorRT are already installed on the board. The root `requirements.txt` describes the model preparation environment and pins a different TensorRT version; use the dependencies above for Jetson inference.
 
-## Environment
+## Build engines
 
-Python 3.13 (conda) · PyTorch cu132 · TensorRT 11.0.0.114 · Polygraphy 0.50.3 · ONNX Runtime 1.27 (cu13 CUDA EP) · NVIDIA ModelOpt 0.44 (INT8 PTQ; isolated env) · CUDA 13 · RTX 4050 Laptop (sm_89), ~55 W envelope.
+Run commands from the repository root. Place the exported models at:
 
-RT-DETR is vendored as a submodule from [lyuwenyu/RT-DETR](https://github.com/lyuwenyu/RT-DETR) and consumed read-only.
+```text
+jetson/model_r101.onnx
+jetson/model_r101.fp16.onnx
+jetson/model_r101.int8.onnx
+```
+
+ONNX models, checkpoints, and compiled engines are excluded from Git. Supply the exported models separately. Build the engines on the target Jetson:
+
+```bash
+bash jetson/scripts/jetson/build_engines.sh -o jetson/engines \
+  jetson/model_r101.onnx \
+  jetson/model_r101.fp16.onnx \
+  jetson/model_r101.int8.onnx
+```
+
+The script writes a `.plan` and build log for each model, plus a shared timing cache. It uses strongly typed networks, a 2048 MiB workspace limit, and builder optimization level 3. Precision is specified in the ONNX graph: FP16 tensor types or INT8 quantize/dequantize nodes. Use `-w` to change the workspace limit or set `TRTEXEC` to override `/usr/src/tensorrt/bin/trtexec`.
+
+## Run inference
+
+Provide an unannotated video as `input.mp4`. This example saves an FP16 recording and appends measurements to a new results table:
+
+```bash
+python jetson/scripts/jetson/infer_jetson.py \
+  --engine jetson/engines/model_r101.fp16.plan \
+  --source input.mp4 \
+  --classes jetson/configs/classes/coco80.yaml \
+  --score-thr 0.5 \
+  --warmup 10 \
+  --power \
+  --save jetson/output/fp16.mp4 \
+  --table jetson/output/benchmark.md
+```
+
+Use `model_r101.plan` for FP32 or `model_r101.int8.plan` for INT8. Keep the source, confidence threshold, warmup, drawing, and recording settings consistent across comparisons.
+
+| Option | Purpose |
+| --- | --- |
+| `--source 0` | Read from a camera. |
+| `--max-frames 300` | Limit the number of processed frames. |
+| `--no-draw` | Disable detection boxes and the statistics overlay. |
+| `--no-hud` | Keep detection boxes but hide the statistics overlay. |
+| `--power` | Sample power rails through `tegrastats`. |
+| `--save <path>` | Write an annotated MP4. Omit to disable video writing. |
+| `--table <path>` | Append a Markdown results row. |
+
+Preprocessing uses RGB, PIL bilinear resizing to 640 × 640, and scaling to `[0, 1]`. Postprocessing selects the top 300 class/query scores, applies the confidence threshold, and maps boxes to the original frame size.
+
+For repeatable measurements, record the active `nvpmodel` mode and clock settings, and keep them fixed across runs. Power sampling starts after warmup. Disabling drawing and video writing changes pipeline throughput; record those options alongside the results.
+
+## Repository layout
+
+| Path | Contents |
+| --- | --- |
+| [jetson/scripts/jetson/](jetson/scripts/jetson/) | Standalone inference runner and engine build script. |
+| [jetson/sample/](jetson/sample/) | FP32, FP16, and INT8 demonstration videos. |
+| [jetson/results/tables/](jetson/results/tables/) | Recorded Jetson latency, throughput, and power measurements. |
+| [jetson/engines/](jetson/engines/) | Recorded build logs; generated plans and timing caches stay local. |
+| [jetson/configs/](jetson/configs/) | Model configuration snapshot and COCO class names. |
+| [models/rtdetr/](models/rtdetr/) | Model export, inference, and COCO evaluation entry points. |
+| [harness/](harness/) | Model adapters, precision conversion, evaluation, and runtime utilities. |
+| [pipeline/](pipeline/) | Model preparation and precision-partitioning stages under development. |
+| [tests/](tests/) | Tests for the shared tooling. |
+
+The measured Jetson workflow covers FP32, FP16, and INT8 deployment. Sensitivity-guided partitioning remains under development and is not part of the results above.
+
+RT-DETR source is included through the [RT-DETR](RT-DETR/) submodule. Initialize it with `git submodule update --init --recursive` when working on model export or evaluation.
