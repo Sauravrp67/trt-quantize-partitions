@@ -1,0 +1,1004 @@
+{
+  "schema_version": 1,
+  "method": "matched_onnx_tensor_output_divergence",
+  "model": "rtdetr",
+  "backbone": "r101vd",
+  "provider": "CUDAExecutionProvider",
+  "reference": {
+    "path": "/home/uwu/Personal_Projects/trt-quantize-partition/host/models/rtdetr/model_r101.onnx",
+    "sha256": "e4abb5ee6fa9b5d075426cbf29442d063742d8723481b6bd8f2a244bcfbce785"
+  },
+  "images": [
+    "000000000139.jpg",
+    "000000000285.jpg",
+    "000000000632.jpg",
+    "000000000724.jpg"
+  ],
+  "operators": [
+    "GridSample",
+    "LayerNormalization",
+    "Softmax"
+  ],
+  "selected_tensors": 52,
+  "variants": {
+    "fp16": {
+      "path": "/home/uwu/Personal_Projects/trt-quantize-partition/host/models/rtdetr/model_r101.fp16.onnx",
+      "sha256": "681672ea36e7aff7b75ff930dc8b2d62147cf7f21804bf748a2225c1f6dcb1fb",
+      "final_output_relative_l2": 0.07922083171372998,
+      "final_outputs": {
+        "pred_logits": {
+          "elements": 96000,
+          "relative_l2": 0.07901325757437505,
+          "mean_absolute_error": 0.20863295181343952,
+          "max_absolute_error": 5.8614349365234375
+        },
+        "pred_boxes": {
+          "elements": 4800,
+          "relative_l2": 0.289394841852887,
+          "mean_absolute_error": 0.061152488676210245,
+          "max_absolute_error": 0.9864740371704102
+        }
+      },
+      "nodes": [
+        {
+          "node": "node_softmax_9",
+          "op": "Softmax",
+          "tensor": "softmax_9",
+          "elements": 2880000,
+          "relative_l2": 0.9660953209184538,
+          "mean_absolute_error": 0.002076112708503156,
+          "max_absolute_error": 0.9847762047065771
+        },
+        {
+          "node": "node_softmax_1",
+          "op": "Softmax",
+          "tensor": "softmax_1",
+          "elements": 2880000,
+          "relative_l2": 0.8112682257866882,
+          "mean_absolute_error": 0.0024193128333419352,
+          "max_absolute_error": 0.9997248649597168
+        },
+        {
+          "node": "node_softmax_5",
+          "op": "Softmax",
+          "tensor": "softmax_5",
+          "elements": 2880000,
+          "relative_l2": 0.7787051571741029,
+          "mean_absolute_error": 0.0022931382228302444,
+          "max_absolute_error": 0.999023041327149
+        },
+        {
+          "node": "node_softmax_3",
+          "op": "Softmax",
+          "tensor": "softmax_3",
+          "elements": 2880000,
+          "relative_l2": 0.7556511480588574,
+          "mean_absolute_error": 0.002279477412191694,
+          "max_absolute_error": 0.9935879963450134
+        },
+        {
+          "node": "node_softmax_7",
+          "op": "Softmax",
+          "tensor": "softmax_7",
+          "elements": 2880000,
+          "relative_l2": 0.7484997330639392,
+          "mean_absolute_error": 0.002317325518260919,
+          "max_absolute_error": 0.992373526096344
+        },
+        {
+          "node": "node_GridSample_4600",
+          "op": "GridSample",
+          "tensor": "grid_sampler_15",
+          "elements": 1228800,
+          "relative_l2": 0.6963827009968379,
+          "mean_absolute_error": 0.07658647732101327,
+          "max_absolute_error": 1.7127044200897217
+        },
+        {
+          "node": "node_softmax_11",
+          "op": "Softmax",
+          "tensor": "softmax_11",
+          "elements": 2880000,
+          "relative_l2": 0.6904064774727231,
+          "mean_absolute_error": 0.0017172156900492129,
+          "max_absolute_error": 0.8899561762809753
+        },
+        {
+          "node": "node_GridSample_4601",
+          "op": "GridSample",
+          "tensor": "grid_sampler_16",
+          "elements": 1228800,
+          "relative_l2": 0.6628399970777046,
+          "mean_absolute_error": 0.08576635262615817,
+          "max_absolute_error": 2.4337242245674133
+        },
+        {
+          "node": "node_GridSample_4594",
+          "op": "GridSample",
+          "tensor": "grid_sampler_9",
+          "elements": 1228800,
+          "relative_l2": 0.6512216136399424,
+          "mean_absolute_error": 0.09970462199213155,
+          "max_absolute_error": 2.82936954498291
+        },
+        {
+          "node": "node_GridSample_4597",
+          "op": "GridSample",
+          "tensor": "grid_sampler_12",
+          "elements": 1228800,
+          "relative_l2": 0.6433605626033615,
+          "mean_absolute_error": 0.09424373222318216,
+          "max_absolute_error": 2.8178043365478516
+        },
+        {
+          "node": "node_GridSample_4602",
+          "op": "GridSample",
+          "tensor": "grid_sampler_17",
+          "elements": 1228800,
+          "relative_l2": 0.6274004768557448,
+          "mean_absolute_error": 0.06092441058886826,
+          "max_absolute_error": 1.4434394836425781
+        },
+        {
+          "node": "node_GridSample_4591",
+          "op": "GridSample",
+          "tensor": "grid_sampler_6",
+          "elements": 1228800,
+          "relative_l2": 0.6242453445255454,
+          "mean_absolute_error": 0.09406507616178326,
+          "max_absolute_error": 2.6540205478668213
+        },
+        {
+          "node": "node_GridSample_4588",
+          "op": "GridSample",
+          "tensor": "grid_sampler_3",
+          "elements": 1228800,
+          "relative_l2": 0.6076296205353288,
+          "mean_absolute_error": 0.0952356522891242,
+          "max_absolute_error": 2.4239452481269836
+        },
+        {
+          "node": "node_GridSample_4585",
+          "op": "GridSample",
+          "tensor": "grid_sampler",
+          "elements": 1228800,
+          "relative_l2": 0.602305211105856,
+          "mean_absolute_error": 0.10926555658128968,
+          "max_absolute_error": 2.490115761756897
+        },
+        {
+          "node": "node_layer_norm_11",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_11",
+          "elements": 307200,
+          "relative_l2": 0.5945653936742731,
+          "mean_absolute_error": 0.21224476519894367,
+          "max_absolute_error": 4.533504605293274
+        },
+        {
+          "node": "node_layer_norm_7",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_7",
+          "elements": 307200,
+          "relative_l2": 0.5863137204028188,
+          "mean_absolute_error": 0.2674059396871639,
+          "max_absolute_error": 5.366367340087891
+        },
+        {
+          "node": "node_layer_norm_8",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_8",
+          "elements": 307200,
+          "relative_l2": 0.5801530401547609,
+          "mean_absolute_error": 0.2276212353891422,
+          "max_absolute_error": 7.959517955780029
+        },
+        {
+          "node": "node_layer_norm_5",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_5",
+          "elements": 307200,
+          "relative_l2": 0.5770860891561418,
+          "mean_absolute_error": 0.19471760431503815,
+          "max_absolute_error": 6.729065418243408
+        },
+        {
+          "node": "node_GridSample_4586",
+          "op": "GridSample",
+          "tensor": "grid_sampler_1",
+          "elements": 1228800,
+          "relative_l2": 0.5761271517992695,
+          "mean_absolute_error": 0.10706411028267931,
+          "max_absolute_error": 2.5289357900619507
+        },
+        {
+          "node": "node_GridSample_4598",
+          "op": "GridSample",
+          "tensor": "grid_sampler_13",
+          "elements": 1228800,
+          "relative_l2": 0.5632663268994668,
+          "mean_absolute_error": 0.08932211711009193,
+          "max_absolute_error": 2.334775447845459
+        },
+        {
+          "node": "node_GridSample_4587",
+          "op": "GridSample",
+          "tensor": "grid_sampler_2",
+          "elements": 1228800,
+          "relative_l2": 0.5605281810474497,
+          "mean_absolute_error": 0.10006289371489178,
+          "max_absolute_error": 3.578201413154602
+        },
+        {
+          "node": "node_GridSample_4592",
+          "op": "GridSample",
+          "tensor": "grid_sampler_7",
+          "elements": 1228800,
+          "relative_l2": 0.5390535611985152,
+          "mean_absolute_error": 0.09123442078692413,
+          "max_absolute_error": 1.986887812614441
+        },
+        {
+          "node": "node_layer_norm_4",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_4",
+          "elements": 307200,
+          "relative_l2": 0.5367128992223608,
+          "mean_absolute_error": 0.25869286969080746,
+          "max_absolute_error": 6.088470458984375
+        },
+        {
+          "node": "node_GridSample_4590",
+          "op": "GridSample",
+          "tensor": "grid_sampler_5",
+          "elements": 1228800,
+          "relative_l2": 0.5264721793368139,
+          "mean_absolute_error": 0.08566212500278891,
+          "max_absolute_error": 3.1452819108963013
+        },
+        {
+          "node": "node_GridSample_4595",
+          "op": "GridSample",
+          "tensor": "grid_sampler_10",
+          "elements": 1228800,
+          "relative_l2": 0.5248646513281606,
+          "mean_absolute_error": 0.09510302369884907,
+          "max_absolute_error": 2.2878884077072144
+        },
+        {
+          "node": "node_layer_norm_10",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_10",
+          "elements": 307200,
+          "relative_l2": 0.520242786209275,
+          "mean_absolute_error": 0.25719269515266985,
+          "max_absolute_error": 6.312631368637085
+        },
+        {
+          "node": "node_GridSample_4589",
+          "op": "GridSample",
+          "tensor": "grid_sampler_4",
+          "elements": 1228800,
+          "relative_l2": 0.5164784296325837,
+          "mean_absolute_error": 0.09047032765907542,
+          "max_absolute_error": 2.064889073371887
+        },
+        {
+          "node": "node_layer_norm_14",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_14",
+          "elements": 307200,
+          "relative_l2": 0.5107362799304286,
+          "mean_absolute_error": 0.16355977947385522,
+          "max_absolute_error": 4.173187494277954
+        },
+        {
+          "node": "node_GridSample_4593",
+          "op": "GridSample",
+          "tensor": "grid_sampler_8",
+          "elements": 1228800,
+          "relative_l2": 0.5050729696233889,
+          "mean_absolute_error": 0.08233486041600849,
+          "max_absolute_error": 3.887754201889038
+        },
+        {
+          "node": "node_layer_norm_13",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_13",
+          "elements": 307200,
+          "relative_l2": 0.5021944633596751,
+          "mean_absolute_error": 0.25510015846950435,
+          "max_absolute_error": 11.325892210006714
+        },
+        {
+          "node": "node_layer_norm_17",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_17",
+          "elements": 307200,
+          "relative_l2": 0.49264636282543695,
+          "mean_absolute_error": 0.14145246307435588,
+          "max_absolute_error": 4.336712598800659
+        },
+        {
+          "node": "node_softmax_12",
+          "op": "Softmax",
+          "tensor": "softmax_12",
+          "elements": 115200,
+          "relative_l2": 0.47950778096497326,
+          "mean_absolute_error": 0.02402514875759866,
+          "max_absolute_error": 0.9333800673484802
+        },
+        {
+          "node": "node_GridSample_4599",
+          "op": "GridSample",
+          "tensor": "grid_sampler_14",
+          "elements": 1228800,
+          "relative_l2": 0.47849172347602575,
+          "mean_absolute_error": 0.06299321915939875,
+          "max_absolute_error": 1.8895952701568604
+        },
+        {
+          "node": "node_softmax_10",
+          "op": "Softmax",
+          "tensor": "softmax_10",
+          "elements": 115200,
+          "relative_l2": 0.4613943574068422,
+          "mean_absolute_error": 0.022120825743014345,
+          "max_absolute_error": 0.8259320855140686
+        },
+        {
+          "node": "node_layer_norm_18",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_18",
+          "elements": 307200,
+          "relative_l2": 0.45787347923532373,
+          "mean_absolute_error": 0.22436256576242453,
+          "max_absolute_error": 8.290132999420166
+        },
+        {
+          "node": "node_layer_norm_19",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_19",
+          "elements": 307200,
+          "relative_l2": 0.4496269265279607,
+          "mean_absolute_error": 0.22296148973469335,
+          "max_absolute_error": 7.909514904022217
+        },
+        {
+          "node": "node_softmax_8",
+          "op": "Softmax",
+          "tensor": "softmax_8",
+          "elements": 115200,
+          "relative_l2": 0.4486293641330165,
+          "mean_absolute_error": 0.020495432819255237,
+          "max_absolute_error": 0.985807585529983
+        },
+        {
+          "node": "node_layer_norm_16",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_16",
+          "elements": 307200,
+          "relative_l2": 0.4469064478600253,
+          "mean_absolute_error": 0.23170431243991796,
+          "max_absolute_error": 5.977787375450134
+        },
+        {
+          "node": "node_layer_norm_9",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_9",
+          "elements": 307200,
+          "relative_l2": 0.4454260176919706,
+          "mean_absolute_error": 0.14011436989657,
+          "max_absolute_error": 3.4452316761016846
+        },
+        {
+          "node": "node_softmax_6",
+          "op": "Softmax",
+          "tensor": "softmax_6",
+          "elements": 115200,
+          "relative_l2": 0.4325088933319932,
+          "mean_absolute_error": 0.019114165027470348,
+          "max_absolute_error": 0.8636623062193394
+        },
+        {
+          "node": "node_layer_norm_20",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_20",
+          "elements": 307200,
+          "relative_l2": 0.4276907213256465,
+          "mean_absolute_error": 0.11656044472079273,
+          "max_absolute_error": 4.91278338432312
+        },
+        {
+          "node": "node_softmax_4",
+          "op": "Softmax",
+          "tensor": "softmax_4",
+          "elements": 115200,
+          "relative_l2": 0.41427351067545104,
+          "mean_absolute_error": 0.018225060570795017,
+          "max_absolute_error": 0.8957991003990173
+        },
+        {
+          "node": "node_layer_norm_12",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_12",
+          "elements": 307200,
+          "relative_l2": 0.41176596536096954,
+          "mean_absolute_error": 0.13220617314494038,
+          "max_absolute_error": 5.318996429443359
+        },
+        {
+          "node": "node_GridSample_4596",
+          "op": "GridSample",
+          "tensor": "grid_sampler_11",
+          "elements": 1228800,
+          "relative_l2": 0.40934359475792736,
+          "mean_absolute_error": 0.06762276558741526,
+          "max_absolute_error": 1.8023236989974976
+        },
+        {
+          "node": "node_layer_norm_6",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_6",
+          "elements": 307200,
+          "relative_l2": 0.40151989785410513,
+          "mean_absolute_error": 0.1212182509300766,
+          "max_absolute_error": 3.0930068492889404
+        },
+        {
+          "node": "node_layer_norm_15",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_15",
+          "elements": 307200,
+          "relative_l2": 0.38212391623603326,
+          "mean_absolute_error": 0.14000435740692177,
+          "max_absolute_error": 4.738878965377808
+        },
+        {
+          "node": "node_softmax_2",
+          "op": "Softmax",
+          "tensor": "softmax_2",
+          "elements": 115200,
+          "relative_l2": 0.35863633919630866,
+          "mean_absolute_error": 0.015409716939776387,
+          "max_absolute_error": 0.6451241970062256
+        },
+        {
+          "node": "node_layer_norm_3",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_3",
+          "elements": 307200,
+          "relative_l2": 0.22341243119155066,
+          "mean_absolute_error": 0.05199526056759769,
+          "max_absolute_error": 1.4827920198440552
+        },
+        {
+          "node": "node_softmax",
+          "op": "Softmax",
+          "tensor": "softmax",
+          "elements": 5120000,
+          "relative_l2": 0.011510760339674558,
+          "mean_absolute_error": 1.2479258202882629e-05,
+          "max_absolute_error": 0.0240929052233696
+        },
+        {
+          "node": "node_layer_norm_1",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_1",
+          "elements": 614400,
+          "relative_l2": 0.006623199104435908,
+          "mean_absolute_error": 0.0024388257643484955,
+          "max_absolute_error": 0.6223716139793396
+        },
+        {
+          "node": "node_layer_norm",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm",
+          "elements": 614400,
+          "relative_l2": 0.006329515321357113,
+          "mean_absolute_error": 0.0023672157661645474,
+          "max_absolute_error": 0.37120750546455383
+        },
+        {
+          "node": "node_layer_norm_2",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_2",
+          "elements": 8601600,
+          "relative_l2": 0.005228563213796242,
+          "mean_absolute_error": 0.0013122439150757437,
+          "max_absolute_error": 0.33307817578315735
+        }
+      ]
+    },
+    "int8": {
+      "path": "/home/uwu/Personal_Projects/trt-quantize-partition/host/models/rtdetr/model_r101.int8.onnx",
+      "sha256": "17fdff662d26bbce4390081471a00a280c45ad6716ed88ebcc6125a689dca521",
+      "final_output_relative_l2": 0.12026316192592301,
+      "final_outputs": {
+        "pred_logits": {
+          "elements": 96000,
+          "relative_l2": 0.11965269884726014,
+          "mean_absolute_error": 0.5015001311227679,
+          "max_absolute_error": 7.439002513885498
+        },
+        "pred_boxes": {
+          "elements": 4800,
+          "relative_l2": 0.5999360891926447,
+          "mean_absolute_error": 0.1987836602702737,
+          "max_absolute_error": 0.9972755908966064
+        }
+      },
+      "nodes": [
+        {
+          "node": "node_softmax_9",
+          "op": "Softmax",
+          "tensor": "softmax_9",
+          "elements": 2880000,
+          "relative_l2": 1.1913367943810755,
+          "mean_absolute_error": 0.003938685022304438,
+          "max_absolute_error": 0.9924533367156982
+        },
+        {
+          "node": "node_GridSample_4600",
+          "op": "GridSample",
+          "tensor": "grid_sampler_15",
+          "elements": 1228800,
+          "relative_l2": 1.0881756198418862,
+          "mean_absolute_error": 0.18286353501726707,
+          "max_absolute_error": 2.1622989028692245
+        },
+        {
+          "node": "node_softmax_5",
+          "op": "Softmax",
+          "tensor": "softmax_5",
+          "elements": 2880000,
+          "relative_l2": 1.0850038457753386,
+          "mean_absolute_error": 0.00455489612144828,
+          "max_absolute_error": 0.9991434859693982
+        },
+        {
+          "node": "node_softmax_1",
+          "op": "Softmax",
+          "tensor": "softmax_1",
+          "elements": 2880000,
+          "relative_l2": 1.0680973443893156,
+          "mean_absolute_error": 0.004658684418862962,
+          "max_absolute_error": 0.9995940327644348
+        },
+        {
+          "node": "node_GridSample_4601",
+          "op": "GridSample",
+          "tensor": "grid_sampler_16",
+          "elements": 1228800,
+          "relative_l2": 1.0619011715360458,
+          "mean_absolute_error": 0.21662025348323757,
+          "max_absolute_error": 2.458468198776245
+        },
+        {
+          "node": "node_GridSample_4602",
+          "op": "GridSample",
+          "tensor": "grid_sampler_17",
+          "elements": 1228800,
+          "relative_l2": 1.0468043995074932,
+          "mean_absolute_error": 0.16321880328724303,
+          "max_absolute_error": 1.7084944248199463
+        },
+        {
+          "node": "node_softmax_3",
+          "op": "Softmax",
+          "tensor": "softmax_3",
+          "elements": 2880000,
+          "relative_l2": 1.0408160947974272,
+          "mean_absolute_error": 0.004515977928062769,
+          "max_absolute_error": 0.9911465900950134
+        },
+        {
+          "node": "node_softmax_7",
+          "op": "Softmax",
+          "tensor": "softmax_7",
+          "elements": 2880000,
+          "relative_l2": 1.0337650053727623,
+          "mean_absolute_error": 0.004465775494039192,
+          "max_absolute_error": 0.9938268065452576
+        },
+        {
+          "node": "node_GridSample_4594",
+          "op": "GridSample",
+          "tensor": "grid_sampler_9",
+          "elements": 1228800,
+          "relative_l2": 1.0267018900057194,
+          "mean_absolute_error": 0.2476601399296689,
+          "max_absolute_error": 2.755120038986206
+        },
+        {
+          "node": "node_GridSample_4597",
+          "op": "GridSample",
+          "tensor": "grid_sampler_12",
+          "elements": 1228800,
+          "relative_l2": 1.0083588480484376,
+          "mean_absolute_error": 0.22876338992946907,
+          "max_absolute_error": 3.34287166595459
+        },
+        {
+          "node": "node_GridSample_4591",
+          "op": "GridSample",
+          "tensor": "grid_sampler_6",
+          "elements": 1228800,
+          "relative_l2": 0.994482698679037,
+          "mean_absolute_error": 0.23753548844303235,
+          "max_absolute_error": 2.9034230709075928
+        },
+        {
+          "node": "node_GridSample_4588",
+          "op": "GridSample",
+          "tensor": "grid_sampler_3",
+          "elements": 1228800,
+          "relative_l2": 0.9816151000266655,
+          "mean_absolute_error": 0.2474496279602143,
+          "max_absolute_error": 2.6081440448760986
+        },
+        {
+          "node": "node_layer_norm_7",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_7",
+          "elements": 307200,
+          "relative_l2": 0.9685700196127666,
+          "mean_absolute_error": 0.719171582619197,
+          "max_absolute_error": 5.379273414611816
+        },
+        {
+          "node": "node_softmax_11",
+          "op": "Softmax",
+          "tensor": "softmax_11",
+          "elements": 2880000,
+          "relative_l2": 0.9681543444584293,
+          "mean_absolute_error": 0.003442344697636861,
+          "max_absolute_error": 0.9545863317439398
+        },
+        {
+          "node": "node_layer_norm_11",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_11",
+          "elements": 307200,
+          "relative_l2": 0.957545436833705,
+          "mean_absolute_error": 0.5510710406876329,
+          "max_absolute_error": 4.439075946807861
+        },
+        {
+          "node": "node_GridSample_4585",
+          "op": "GridSample",
+          "tensor": "grid_sampler",
+          "elements": 1228800,
+          "relative_l2": 0.9568338766651121,
+          "mean_absolute_error": 0.28092489517298525,
+          "max_absolute_error": 2.5776907205581665
+        },
+        {
+          "node": "node_layer_norm_5",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_5",
+          "elements": 307200,
+          "relative_l2": 0.952857599853372,
+          "mean_absolute_error": 0.5250611858334474,
+          "max_absolute_error": 7.240046739578247
+        },
+        {
+          "node": "node_layer_norm_8",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_8",
+          "elements": 307200,
+          "relative_l2": 0.9459810459890134,
+          "mean_absolute_error": 0.6043169058290946,
+          "max_absolute_error": 7.823217153549194
+        },
+        {
+          "node": "node_GridSample_4586",
+          "op": "GridSample",
+          "tensor": "grid_sampler_1",
+          "elements": 1228800,
+          "relative_l2": 0.9426364570472698,
+          "mean_absolute_error": 0.28847035104571456,
+          "max_absolute_error": 2.8439821004867554
+        },
+        {
+          "node": "node_GridSample_4598",
+          "op": "GridSample",
+          "tensor": "grid_sampler_13",
+          "elements": 1228800,
+          "relative_l2": 0.924410171338786,
+          "mean_absolute_error": 0.2355112594166547,
+          "max_absolute_error": 2.3792463541030884
+        },
+        {
+          "node": "node_GridSample_4587",
+          "op": "GridSample",
+          "tensor": "grid_sampler_2",
+          "elements": 1228800,
+          "relative_l2": 0.9225480384720738,
+          "mean_absolute_error": 0.2701436553794163,
+          "max_absolute_error": 4.04140305519104
+        },
+        {
+          "node": "node_GridSample_4592",
+          "op": "GridSample",
+          "tensor": "grid_sampler_7",
+          "elements": 1228800,
+          "relative_l2": 0.8896633854934977,
+          "mean_absolute_error": 0.24523529911784422,
+          "max_absolute_error": 2.4976086616516113
+        },
+        {
+          "node": "node_layer_norm_4",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_4",
+          "elements": 307200,
+          "relative_l2": 0.8752071156613543,
+          "mean_absolute_error": 0.6888418044008047,
+          "max_absolute_error": 6.875480651855469
+        },
+        {
+          "node": "node_GridSample_4590",
+          "op": "GridSample",
+          "tensor": "grid_sampler_5",
+          "elements": 1228800,
+          "relative_l2": 0.8655543373754944,
+          "mean_absolute_error": 0.2312563343213048,
+          "max_absolute_error": 3.5921409130096436
+        },
+        {
+          "node": "node_GridSample_4595",
+          "op": "GridSample",
+          "tensor": "grid_sampler_10",
+          "elements": 1228800,
+          "relative_l2": 0.8611592949653425,
+          "mean_absolute_error": 0.25196973078678586,
+          "max_absolute_error": 2.467198371887207
+        },
+        {
+          "node": "node_GridSample_4589",
+          "op": "GridSample",
+          "tensor": "grid_sampler_4",
+          "elements": 1228800,
+          "relative_l2": 0.8546450994249505,
+          "mean_absolute_error": 0.24457073421943362,
+          "max_absolute_error": 2.284788131713867
+        },
+        {
+          "node": "node_layer_norm_10",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_10",
+          "elements": 307200,
+          "relative_l2": 0.8505832345704011,
+          "mean_absolute_error": 0.6781147690615065,
+          "max_absolute_error": 7.095091819763184
+        },
+        {
+          "node": "node_GridSample_4593",
+          "op": "GridSample",
+          "tensor": "grid_sampler_8",
+          "elements": 1228800,
+          "relative_l2": 0.8242148314039554,
+          "mean_absolute_error": 0.2212062377560733,
+          "max_absolute_error": 4.135999917984009
+        },
+        {
+          "node": "node_layer_norm_13",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_13",
+          "elements": 307200,
+          "relative_l2": 0.8128456862311132,
+          "mean_absolute_error": 0.6590352300641817,
+          "max_absolute_error": 10.482142210006714
+        },
+        {
+          "node": "node_layer_norm_14",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_14",
+          "elements": 307200,
+          "relative_l2": 0.8071586443139698,
+          "mean_absolute_error": 0.41036547353120734,
+          "max_absolute_error": 5.964286804199219
+        },
+        {
+          "node": "node_GridSample_4599",
+          "op": "GridSample",
+          "tensor": "grid_sampler_14",
+          "elements": 1228800,
+          "relative_l2": 0.8030235231260547,
+          "mean_absolute_error": 0.17186067845336506,
+          "max_absolute_error": 2.087890625
+        },
+        {
+          "node": "node_softmax_12",
+          "op": "Softmax",
+          "tensor": "softmax_12",
+          "elements": 115200,
+          "relative_l2": 0.7798353525707885,
+          "mean_absolute_error": 0.06513573280943444,
+          "max_absolute_error": 0.912279661744833
+        },
+        {
+          "node": "node_softmax_10",
+          "op": "Softmax",
+          "tensor": "softmax_10",
+          "elements": 115200,
+          "relative_l2": 0.7760342660726255,
+          "mean_absolute_error": 0.060785583472866764,
+          "max_absolute_error": 0.8003042340278625
+        },
+        {
+          "node": "node_layer_norm_17",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_17",
+          "elements": 307200,
+          "relative_l2": 0.7674999327873168,
+          "mean_absolute_error": 0.3460105274163331,
+          "max_absolute_error": 7.446429014205933
+        },
+        {
+          "node": "node_layer_norm_9",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_9",
+          "elements": 307200,
+          "relative_l2": 0.7530400168344505,
+          "mean_absolute_error": 0.3839514034777729,
+          "max_absolute_error": 3.5149283409118652
+        },
+        {
+          "node": "node_softmax_8",
+          "op": "Softmax",
+          "tensor": "softmax_8",
+          "elements": 115200,
+          "relative_l2": 0.7378508021965984,
+          "mean_absolute_error": 0.055241998026884835,
+          "max_absolute_error": 0.9902847853954881
+        },
+        {
+          "node": "node_layer_norm_18",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_18",
+          "elements": 307200,
+          "relative_l2": 0.7340359438619151,
+          "mean_absolute_error": 0.5719888352642418,
+          "max_absolute_error": 12.635027885437012
+        },
+        {
+          "node": "node_layer_norm_16",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_16",
+          "elements": 307200,
+          "relative_l2": 0.7306448436958978,
+          "mean_absolute_error": 0.5910821669233903,
+          "max_absolute_error": 9.518843650817871
+        },
+        {
+          "node": "node_softmax_4",
+          "op": "Softmax",
+          "tensor": "softmax_4",
+          "elements": 115200,
+          "relative_l2": 0.7201845544134885,
+          "mean_absolute_error": 0.052108035941902955,
+          "max_absolute_error": 0.8973850607872009
+        },
+        {
+          "node": "node_layer_norm_19",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_19",
+          "elements": 307200,
+          "relative_l2": 0.7109663043658001,
+          "mean_absolute_error": 0.5581088389145619,
+          "max_absolute_error": 13.294086933135986
+        },
+        {
+          "node": "node_softmax_6",
+          "op": "Softmax",
+          "tensor": "softmax_6",
+          "elements": 115200,
+          "relative_l2": 0.7028155746681335,
+          "mean_absolute_error": 0.051576405105791034,
+          "max_absolute_error": 0.9662722004577518
+        },
+        {
+          "node": "node_layer_norm_6",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_6",
+          "elements": 307200,
+          "relative_l2": 0.6980236691278112,
+          "mean_absolute_error": 0.34398350926398347,
+          "max_absolute_error": 3.170772671699524
+        },
+        {
+          "node": "node_GridSample_4596",
+          "op": "GridSample",
+          "tensor": "grid_sampler_11",
+          "elements": 1228800,
+          "relative_l2": 0.6947570753401288,
+          "mean_absolute_error": 0.1860556022092128,
+          "max_absolute_error": 2.1596108078956604
+        },
+        {
+          "node": "node_layer_norm_12",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_12",
+          "elements": 307200,
+          "relative_l2": 0.684439629399618,
+          "mean_absolute_error": 0.3543294985036414,
+          "max_absolute_error": 4.959340572357178
+        },
+        {
+          "node": "node_layer_norm_20",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_20",
+          "elements": 307200,
+          "relative_l2": 0.6514853405276109,
+          "mean_absolute_error": 0.28164528334178196,
+          "max_absolute_error": 5.887457370758057
+        },
+        {
+          "node": "node_layer_norm_15",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_15",
+          "elements": 307200,
+          "relative_l2": 0.6471479671814632,
+          "mean_absolute_error": 0.3793101679808733,
+          "max_absolute_error": 5.939302086830139
+        },
+        {
+          "node": "node_softmax_2",
+          "op": "Softmax",
+          "tensor": "softmax_2",
+          "elements": 115200,
+          "relative_l2": 0.6394297791614786,
+          "mean_absolute_error": 0.044856570985015574,
+          "max_absolute_error": 0.6028517372906208
+        },
+        {
+          "node": "node_layer_norm_3",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_3",
+          "elements": 307200,
+          "relative_l2": 0.39761134647931107,
+          "mean_absolute_error": 0.15528279816753365,
+          "max_absolute_error": 1.7025722032412887
+        },
+        {
+          "node": "node_layer_norm_2",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_2",
+          "elements": 8601600,
+          "relative_l2": 0.2852129459286695,
+          "mean_absolute_error": 0.1420267918459694,
+          "max_absolute_error": 2.1303716897964478
+        },
+        {
+          "node": "node_softmax",
+          "op": "Softmax",
+          "tensor": "softmax",
+          "elements": 5120000,
+          "relative_l2": 0.18574181430102796,
+          "mean_absolute_error": 0.000411355110615475,
+          "max_absolute_error": 0.11699168826453388
+        },
+        {
+          "node": "node_layer_norm_1",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm_1",
+          "elements": 614400,
+          "relative_l2": 0.1617050453099302,
+          "mean_absolute_error": 0.12695448898032421,
+          "max_absolute_error": 2.3472935557365417
+        },
+        {
+          "node": "node_layer_norm",
+          "op": "LayerNormalization",
+          "tensor": "layer_norm",
+          "elements": 614400,
+          "relative_l2": 0.15117411255851074,
+          "mean_absolute_error": 0.11437361421616257,
+          "max_absolute_error": 2.100173592567444
+        }
+      ]
+    }
+  },
+  "rescue": []
+}

@@ -1,0 +1,175 @@
+&&&& RUNNING TensorRT.trtexec [TensorRT v101602] [b10] # /usr/src/tensorrt/bin/trtexec --onnx=model_r101.int8.onnx --saveEngine=./engines/model_r101.int8.plan --stronglyTyped --memPoolSize=workspace:2048 --builderOptimizationLevel=3 --timingCacheFile=./engines/timing.cache --profilingVerbosity=detailed --skipInference
+[08/20/2026-12:40:28] [I] === Model Options ===
+[08/20/2026-12:40:28] [I] Format: ONNX
+[08/20/2026-12:40:28] [I] Model: model_r101.int8.onnx
+[08/20/2026-12:40:28] [I] Output:
+[08/20/2026-12:40:28] [I] === Build Options ===
+[08/20/2026-12:40:28] [I] Memory Pools: workspace: 2048 MiB, dlaSRAM: default, dlaLocalDRAM: default, dlaGlobalDRAM: default, tacticSharedMem: default
+[08/20/2026-12:40:28] [I] avgTiming: 8
+[08/20/2026-12:40:28] [I] Precision: Strongly Typed
+[08/20/2026-12:40:28] [I] LayerPrecisions: 
+[08/20/2026-12:40:28] [I] Layer Device Types: 
+[08/20/2026-12:40:28] [I] Decomposable Attentions: 
+[08/20/2026-12:40:28] [I] Calibration: 
+[08/20/2026-12:40:28] [I] Refit: Disabled
+[08/20/2026-12:40:28] [I] Strip weights: Disabled
+[08/20/2026-12:40:28] [I] Version Compatible: Disabled
+[08/20/2026-12:40:28] [I] ONNX Plugin InstanceNorm: Disabled
+[08/20/2026-12:40:28] [I] ONNX kENABLE_UINT8_AND_ASYMMETRIC_QUANTIZATION_DLA flag: Disabled
+[08/20/2026-12:40:28] [I] ONNX kREPORT_CAPABILITY_DLA flag: Disabled
+[08/20/2026-12:40:28] [I] ONNX kADJUST_FOR_DLA flag: Disabled
+[08/20/2026-12:40:28] [I] ONNX kENABLE_PLUGIN_OVERRIDE flag: Disabled
+[08/20/2026-12:40:28] [I] TensorRT runtime: full
+[08/20/2026-12:40:28] [I] Lean DLL Path: 
+[08/20/2026-12:40:28] [I] Tempfile Controls: { in_memory: allow, temporary: allow }
+[08/20/2026-12:40:28] [I] Exclude Lean Runtime: Disabled
+[08/20/2026-12:40:28] [I] Sparsity: Disabled
+[08/20/2026-12:40:28] [I] Safe mode: Disabled
+[08/20/2026-12:40:28] [I] Build DLA standalone loadable: Disabled
+[08/20/2026-12:40:28] [I] Allow GPU fallback for DLA: Disabled
+[08/20/2026-12:40:28] [I] DirectIO mode: Disabled
+[08/20/2026-12:40:28] [I] Restricted mode: Disabled
+[08/20/2026-12:40:28] [I] Skip inference: Enabled
+[08/20/2026-12:40:28] [I] Save engine: ./engines/model_r101.int8.plan
+[08/20/2026-12:40:28] [I] Load engine: 
+[08/20/2026-12:40:28] [I] Profiling verbosity: 2
+[08/20/2026-12:40:28] [I] Tactic sources: Using default tactic sources
+[08/20/2026-12:40:28] [I] timingCacheMode: global
+[08/20/2026-12:40:28] [I] timingCacheFile: ./engines/timing.cache
+[08/20/2026-12:40:28] [I] Enable Compilation Cache: Enabled
+[08/20/2026-12:40:28] [I] Enable Monitor Memory: Disabled
+[08/20/2026-12:40:28] [I] CPU Only Mode: Disabled
+[08/20/2026-12:40:28] [I] errorOnTimingCacheMiss: Disabled
+[08/20/2026-12:40:28] [I] Preview Features: Use default preview flags.
+[08/20/2026-12:40:28] [I] MaxAuxStreams: -1
+[08/20/2026-12:40:28] [I] BuilderOptimizationLevel: 3
+[08/20/2026-12:40:28] [I] MaxTactics: -1
+[08/20/2026-12:40:28] [I] Calibration Profile Index: 0
+[08/20/2026-12:40:28] [I] Weight Streaming: Disabled
+[08/20/2026-12:40:28] [I] Runtime Platform: Same As Build
+[08/20/2026-12:40:28] [I] Debug Tensors: 
+[08/20/2026-12:40:28] [I] Distributive Independence: Disabled
+[08/20/2026-12:40:28] [I] Mark Unfused Tensors As Debug Tensors: Disabled
+[08/20/2026-12:40:28] [I] Input(s)s format: fp32:CHW
+[08/20/2026-12:40:28] [I] Output(s)s format: fp32:CHW
+[08/20/2026-12:40:28] [I] Input build shapes: model
+[08/20/2026-12:40:28] [I] Input calibration shapes: model
+[08/20/2026-12:40:28] [I] === System Options ===
+[08/20/2026-12:40:28] [I] Device: 0
+[08/20/2026-12:40:28] [I] DLACore: 
+[08/20/2026-12:40:28] [I] Loaded static plugins:
+[08/20/2026-12:40:28] [I] setPluginsToSerialize:
+[08/20/2026-12:40:28] [I] dynamicPlugins:
+[08/20/2026-12:40:28] [I] ignoreParsedPluginLibs: 0
+[08/20/2026-12:40:28] [I] 
+[08/20/2026-12:40:28] [I] === Inference Options ===
+[08/20/2026-12:40:28] [I] Batch: Explicit
+[08/20/2026-12:40:28] [I] Input inference shapes: model
+[08/20/2026-12:40:28] [I] Iterations: 10
+[08/20/2026-12:40:28] [I] Duration: 3s (+ 200ms warm up)
+[08/20/2026-12:40:28] [I] Sleep time: 0ms
+[08/20/2026-12:40:28] [I] Idle time: 0ms
+[08/20/2026-12:40:28] [I] Inference Streams: 1
+[08/20/2026-12:40:28] [I] ExposeDMA: Disabled
+[08/20/2026-12:40:28] [I] Data transfers: Enabled
+[08/20/2026-12:40:28] [I] Spin-wait: Disabled
+[08/20/2026-12:40:28] [I] Multithreading: Disabled
+[08/20/2026-12:40:28] [I] CUDA Graph: Disabled
+[08/20/2026-12:40:28] [I] Separate profiling: Disabled
+[08/20/2026-12:40:28] [I] Time Deserialize: Disabled
+[08/20/2026-12:40:28] [I] Time Refit: Disabled
+[08/20/2026-12:40:28] [I] NVTX verbosity: 2
+[08/20/2026-12:40:28] [I] Persistent Cache Ratio: 0
+[08/20/2026-12:40:28] [I] Optimization Profile Index: 0
+[08/20/2026-12:40:28] [I] Weight Streaming Budget: 100.000000%
+[08/20/2026-12:40:28] [I] Inputs:
+[08/20/2026-12:40:28] [I] Debug Tensor Save Destinations:
+[08/20/2026-12:40:28] [I] Dump All Debug Tensor in Formats: 
+[08/20/2026-12:40:28] [I] === Reporting Options ===
+[08/20/2026-12:40:28] [I] Verbose: Disabled
+[08/20/2026-12:40:28] [I] Averages: 10 inferences
+[08/20/2026-12:40:28] [I] Percentiles: 90,95,99
+[08/20/2026-12:40:28] [I] Dump refittable layers:Disabled
+[08/20/2026-12:40:28] [I] Dump output: Disabled
+[08/20/2026-12:40:28] [I] Profile: Disabled
+[08/20/2026-12:40:28] [I] Export timing to JSON file: 
+[08/20/2026-12:40:28] [I] Export output to JSON file: 
+[08/20/2026-12:40:28] [I] Export profile to JSON file: 
+[08/20/2026-12:40:28] [I] 
+[08/20/2026-12:40:28] [I] === Device Information ===
+[08/20/2026-12:40:28] [I] Available Devices: 
+[08/20/2026-12:40:28] [I]   Device 0: "Orin" UUID: GPU-83d248c0-5862-540d-a0bb-2335e2d94404
+[08/20/2026-12:40:28] [I] Selected Device: Orin
+[08/20/2026-12:40:28] [I] Selected Device ID: 0
+[08/20/2026-12:40:28] [I] Selected Device UUID: GPU-83d248c0-5862-540d-a0bb-2335e2d94404
+[08/20/2026-12:40:28] [I] Compute Capability: 8.7
+[08/20/2026-12:40:28] [I] SMs: 8
+[08/20/2026-12:40:28] [I] Device Global Memory: 7546 MiB
+[08/20/2026-12:40:28] [I] Shared Memory per SM: 164 KiB
+[08/20/2026-12:40:28] [I] Memory Bus Width: 128 bits (ECC disabled)
+[08/20/2026-12:40:28] [I] Application Compute Clock Rate: 1.02 GHz
+[08/20/2026-12:40:28] [I] Application Memory Clock Rate: 1.02 GHz
+[08/20/2026-12:40:28] [I] 
+[08/20/2026-12:40:28] [I] Note: The application clock rates do not reflect the actual clock rates that the GPU is currently running at.
+[08/20/2026-12:40:28] [I] 
+[08/20/2026-12:40:28] [I] TensorRT version: 10.16.2
+[08/20/2026-12:40:28] [I] Loading standard plugins
+[08/20/2026-12:40:28] [I] [TRT] [MemUsageChange] Init CUDA: CPU +1, GPU +0, now: CPU 24, GPU 3061 (MiB)
+[08/20/2026-12:40:28] [I] Start parsing network model.
+[08/20/2026-12:40:30] [I] [TRT] ----------------------------------------------------------------
+[08/20/2026-12:40:30] [I] [TRT] Input filename:   model_r101.int8.onnx
+[08/20/2026-12:40:30] [I] [TRT] ONNX IR version:  0.0.10
+[08/20/2026-12:40:30] [I] [TRT] Opset version:    20
+[08/20/2026-12:40:30] [I] [TRT] Producer name:    onnx.quantize
+[08/20/2026-12:40:30] [I] [TRT] Producer version: 0.1.0
+[08/20/2026-12:40:30] [I] [TRT] Domain:           
+[08/20/2026-12:40:30] [I] [TRT] Model version:    0
+[08/20/2026-12:40:30] [I] [TRT] Doc string:       
+[08/20/2026-12:40:30] [I] [TRT] ----------------------------------------------------------------
+[08/20/2026-12:40:31] [I] Finished parsing network model. Parse time: 2.06903
+[08/20/2026-12:40:31] [I] [TRT] Loaded 6098125 bytes of cache from file: ./engines/timing.cache
+[08/20/2026-12:40:31] [I] [TRT] [MemUsageChange] Init builder kernel library: CPU +198, GPU +189, now: CPU 662, GPU 3723 (MiB)
+[08/20/2026-12:40:32] [I] [TRT] Global timing cache in use. Profiling results in this builder pass will be stored.
+[08/20/2026-12:41:09] [I] [TRT] Compiler backend is used during engine build.
+[08/20/2026-12:41:47] [E] Error[9]: Error Code: 9: Skipping tactic 0x0000000000000000 due to exception [type.cpp:186: infer_type] Could not infer output types for operation:   349: dequantize: Dequantized input0-(f32[1,384,40,40][]so[], mem_prop=0, align=4) | input0 reshape out_transpose_out reshape out slice_U28 out-(i8[][]so[], mem_prop=0, align=1), MyelinPW(21015) - Input Dequantization 0 scale weightsHalf-0.142334H:(f16[][]so[], mem_prop=0, align=2)<entry>, stream = 0 // MyelinPW(21015) - Input Dequantization 0, axis = 0, No matching rules found for input operand types In compileGraph at /_src/optimizer/myelin/codeGenerator.cpp:1795
+[08/20/2026-12:41:47] [E] Error[9]: Error Code: 9: Skipping tactic 0x0000000000000000 due to exception [type.cpp:186: infer_type] Could not infer output types for operation:   373: dequantize: Dequantized input0-(f32[1,384,40,40][]so[], mem_prop=0, align=4) | input0 reshape out_transpose_out reshape out slice_U28 out-(i8[][]so[], mem_prop=0, align=1), MyelinPW(21015) - Input Dequantization 0 scale weightsHalf-0.142334H:(f16[][]so[], mem_prop=0, align=2)<entry>, stream = 0 // MyelinPW(21015) - Input Dequantization 0, axis = 0, No matching rules found for input operand types In compileGraph at /_src/optimizer/myelin/codeGenerator.cpp:1795
+[08/20/2026-12:41:48] [E] Error[9]: Error Code: 9: Skipping tactic 0x0000000000000000 due to exception [type.cpp:186: infer_type] Could not infer output types for operation:   349: dequantize: Dequantized input0-(f32[1,384,80,80][]so[], mem_prop=0, align=4) | input0 reshape out_transpose_out reshape out slice_U28 out-(i8[][]so[], mem_prop=0, align=1), MyelinPW(21015) - Input Dequantization 0 scale weightsHalf-0.219238H:(f16[][]so[], mem_prop=0, align=2)<entry>, stream = 0 // MyelinPW(21015) - Input Dequantization 0, axis = 0, No matching rules found for input operand types In compileGraph at /_src/optimizer/myelin/codeGenerator.cpp:1795
+[08/20/2026-12:41:48] [E] Error[9]: Error Code: 9: Skipping tactic 0x0000000000000000 due to exception [type.cpp:186: infer_type] Could not infer output types for operation:   373: dequantize: Dequantized input0-(f32[1,384,80,80][]so[], mem_prop=0, align=4) | input0 reshape out_transpose_out reshape out slice_U28 out-(i8[][]so[], mem_prop=0, align=1), MyelinPW(21015) - Input Dequantization 0 scale weightsHalf-0.219238H:(f16[][]so[], mem_prop=0, align=2)<entry>, stream = 0 // MyelinPW(21015) - Input Dequantization 0, axis = 0, No matching rules found for input operand types In compileGraph at /_src/optimizer/myelin/codeGenerator.cpp:1795
+[08/20/2026-12:41:49] [E] Error[9]: Error Code: 9: Skipping tactic 0x0000000000000000 due to exception [type.cpp:186: infer_type] Could not infer output types for operation:   349: dequantize: Dequantized input0-(f32[1,384,40,40][]so[], mem_prop=0, align=4) | input0 reshape out_transpose_out reshape out slice_U28 out-(i8[][]so[], mem_prop=0, align=1), MyelinPW(21015) - Input Dequantization 0 scale weightsHalf-0.266602H:(f16[][]so[], mem_prop=0, align=2)<entry>, stream = 0 // MyelinPW(21015) - Input Dequantization 0, axis = 0, No matching rules found for input operand types In compileGraph at /_src/optimizer/myelin/codeGenerator.cpp:1795
+[08/20/2026-12:41:49] [E] Error[9]: Error Code: 9: Skipping tactic 0x0000000000000000 due to exception [type.cpp:186: infer_type] Could not infer output types for operation:   373: dequantize: Dequantized input0-(f32[1,384,40,40][]so[], mem_prop=0, align=4) | input0 reshape out_transpose_out reshape out slice_U28 out-(i8[][]so[], mem_prop=0, align=1), MyelinPW(21015) - Input Dequantization 0 scale weightsHalf-0.266602H:(f16[][]so[], mem_prop=0, align=2)<entry>, stream = 0 // MyelinPW(21015) - Input Dequantization 0, axis = 0, No matching rules found for input operand types In compileGraph at /_src/optimizer/myelin/codeGenerator.cpp:1795
+[08/20/2026-12:41:50] [E] Error[9]: Error Code: 9: Skipping tactic 0x0000000000000000 due to exception [type.cpp:186: infer_type] Could not infer output types for operation:   349: dequantize: Dequantized input0-(f32[1,384,20,20][]so[], mem_prop=0, align=4) | input0 reshape out_transpose_out reshape out slice_U28 out-(i8[][]so[], mem_prop=0, align=1), MyelinPW(21015) - Input Dequantization 0 scale weightsHalf-0.174683H:(f16[][]so[], mem_prop=0, align=2)<entry>, stream = 0 // MyelinPW(21015) - Input Dequantization 0, axis = 0, No matching rules found for input operand types In compileGraph at /_src/optimizer/myelin/codeGenerator.cpp:1795
+[08/20/2026-12:41:50] [E] Error[9]: Error Code: 9: Skipping tactic 0x0000000000000000 due to exception [type.cpp:186: infer_type] Could not infer output types for operation:   373: dequantize: Dequantized input0-(f32[1,384,20,20][]so[], mem_prop=0, align=4) | input0 reshape out_transpose_out reshape out slice_U28 out-(i8[][]so[], mem_prop=0, align=1), MyelinPW(21015) - Input Dequantization 0 scale weightsHalf-0.174683H:(f16[][]so[], mem_prop=0, align=2)<entry>, stream = 0 // MyelinPW(21015) - Input Dequantization 0, axis = 0, No matching rules found for input operand types In compileGraph at /_src/optimizer/myelin/codeGenerator.cpp:1795
+WARNING: in op node_clamp_2_min, operand node_clamp_2_beta payload type requires precision-lose casting
+WARNING: in op node_clamp_3_min, operand node_clamp_3_beta payload type requires precision-lose casting
+WARNING: in op node_clamp_6_min, operand node_clamp_6_beta payload type requires precision-lose casting
+WARNING: in op node_clamp_7_min, operand node_clamp_7_beta payload type requires precision-lose casting
+WARNING: in op node_clamp_10_min, operand node_clamp_10_beta payload type requires precision-lose casting
+WARNING: in op node_clamp_11_min, operand node_clamp_11_beta payload type requires precision-lose casting
+WARNING: in op node_clamp_14_min, operand node_clamp_14_beta payload type requires precision-lose casting
+WARNING: in op node_clamp_15_min, operand node_clamp_15_beta payload type requires precision-lose casting
+WARNING: in op node_clamp_18_min, operand node_clamp_18_beta payload type requires precision-lose casting
+WARNING: in op node_clamp_19_min, operand node_clamp_19_beta payload type requires precision-lose casting
+WARNING: in op node_clamp_22_min, operand node_clamp_22_beta payload type requires precision-lose casting
+WARNING: in op node_clamp_23_min, operand node_clamp_23_beta payload type requires precision-lose casting
+[08/20/2026-12:43:46] [I] [TRT] Detected 1 inputs and 2 output network tensors.
+[08/20/2026-12:43:56] [I] [TRT] Total Host Persistent Memory: 663840 bytes
+[08/20/2026-12:43:56] [I] [TRT] Total Device Persistent Memory: 0 bytes
+[08/20/2026-12:43:56] [I] [TRT] Max Scratch Memory: 41292800 bytes
+[08/20/2026-12:43:56] [I] [TRT] [BlockAssignment] Started assigning block shifts. This will take 170 steps to complete.
+[08/20/2026-12:43:56] [I] [TRT] [BlockAssignment] Algorithm ShiftNTopDown took 10.5476ms to assign 6 blocks to 170 nodes requiring 52300800 bytes.
+[08/20/2026-12:43:56] [I] [TRT] Total Activation Memory: 52300800 bytes
+[08/20/2026-12:43:56] [I] [TRT] Total Weights Memory: 77828738 bytes
+[08/20/2026-12:43:56] [I] [TRT] Compiler backend is used during engine execution.
+[08/20/2026-12:43:56] [I] [TRT] Engine generation completed in 203.714 seconds.
+[08/20/2026-12:43:56] [I] [TRT] [MemUsageStats] Peak memory usage of TRT CPU/GPU memory allocators: CPU 2 MiB, GPU 100 MiB
+[08/20/2026-12:43:56] [I] Created engine with size: 79.3744 MiB
+[08/20/2026-12:43:56] [I] Engine built in 205.821 sec.
+[08/20/2026-12:43:56] [I] [TRT] Loaded 6098125 bytes of cache from file: ./engines/timing.cache
+[08/20/2026-12:43:57] [I] [TRT] Serialized 11554 bytes of code generator cache.
+[08/20/2026-12:43:58] [I] [TRT] Serialized 13519221 bytes of compilation cache.
+[08/20/2026-12:43:58] [I] [TRT] Serialized 2627 timing cache entries
+[08/20/2026-12:43:58] [I] [TRT] Saved 13804151 bytes of timing cache to ./engines/timing.cache
+[08/20/2026-12:44:00] [I] [TRT] Loaded engine size: 79 MiB
+[08/20/2026-12:44:00] [I] Engine deserialized in 1.30169 sec.
+[08/20/2026-12:44:00] [I] Skipped inference phase since --skipInference is added.
+&&&& PASSED TensorRT.trtexec [TensorRT v101602] [b10] # /usr/src/tensorrt/bin/trtexec --onnx=model_r101.int8.onnx --saveEngine=./engines/model_r101.int8.plan --stronglyTyped --memPoolSize=workspace:2048 --builderOptimizationLevel=3 --timingCacheFile=./engines/timing.cache --profilingVerbosity=detailed --skipInference

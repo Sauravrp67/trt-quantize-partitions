@@ -1,0 +1,6 @@
+# TensorRT and OpenCV come from the board's system Python environment.
+# Do not install the host preparation requirements on the Jetson.
+numpy>=1.24
+Pillow>=9
+PyYAML>=6
+polygraphy>=0.49

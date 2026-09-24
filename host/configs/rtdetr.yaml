@@ -1,0 +1,103 @@
+name: rtdetr
+
+# inline list, or a path to a YAML with `names:` (shared across COCO models)
+classes: ${configs}/classes/coco80.yaml
+
+# Which entry of `backbones` to use. infer.py reads it and offers no override — model
+# identity has one source. export.py / eval_map.py still take --backbone, since building
+# and scoring every entry is setup work rather than an experiment axis.
+backbone: r101vd
+
+# Backbone registry. Each entry pairs an upstream config (read-only, in the submodule)
+# with its checkpoint and the ONNX files exported from it — they are separate artifacts
+# per backbone, so they are declared per entry. An entry may also override any key of the
+# shared `onnx:` contract below (img_size, batch, input_name, output_names), which is what
+# lets a custom backbone at a different resolution live here instead of in its own spec.
+#
+# Adding one: give it a config + ckpt, and name its exports rtdetr_<backbone>.onnx /
+# rtdetr_<backbone>.fp16.onnx (the r18vd/r101vd paths below predate that convention).
+backbones:
+
+  r18vd:
+    config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_r18vd_6x_coco.yml
+    ckpt: ${models}/rtdetr/checkpoints/rtdetr_r18vd_dec3_6x_coco_from_paddle.pth
+    onnx:
+      fp32: ${models}/rtdetr/model.onnx
+      fp16: ${models}/rtdetr/model.fp16.onnx
+
+  r101vd:
+    # this checkpoint is the Objects365-pretrained release, not the plain 6x COCO one
+    config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_r101vd_6x_coco.yml
+    ckpt: ${models}/rtdetr/checkpoints/rtdetr_r101vd_2x_coco_objects365_from_paddle.pth
+    onnx:
+      fp32: ${models}/rtdetr/model_r101.onnx
+      fp16: ${models}/rtdetr/model_r101.fp16.onnx
+      int8: ${models}/rtdetr/model_r101.int8.onnx
+
+  # --- released upstream, checkpoint not downloaded yet -----------------------------
+  # (filenames are the official ones from RT-DETR/rtdetr_pytorch/README.md)
+
+  r34vd:
+    config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_r34vd_6x_coco.yml
+    ckpt: ${models}/rtdetr/checkpoints/rtdetr_r34vd_dec4_6x_coco_from_paddle.pth
+    onnx:
+      fp32: ${models}/rtdetr/rtdetr_r34vd.onnx
+      fp16: ${models}/rtdetr/rtdetr_r34vd.fp16.onnx
+
+  r50vd:
+    config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_r50vd_6x_coco.yml
+    ckpt: ${models}/rtdetr/checkpoints/rtdetr_r50vd_6x_coco_from_paddle.pth
+    onnx:
+      fp32: ${models}/rtdetr/rtdetr_r50vd.onnx
+      fp16: ${models}/rtdetr/rtdetr_r50vd.fp16.onnx
+
+  r50vd_m:
+    config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_r50vd_m_6x_coco.yml
+    ckpt: ${models}/rtdetr/checkpoints/rtdetr_r50vd_m_6x_coco_from_paddle.pth
+    onnx:
+      fp32: ${models}/rtdetr/rtdetr_r50vd_m.onnx
+      fp16: ${models}/rtdetr/rtdetr_r50vd_m.fp16.onnx
+
+  # --- config exists upstream but no released checkpoint (needs training) -----------
+  # dla34:
+  #   config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_dla34_6x_coco.yml
+  #   ckpt: ${models}/rtdetr/checkpoints/<your trained dla34>.pth
+  #   onnx: {fp32: ${models}/rtdetr/rtdetr_dla34.onnx, fp16: ${models}/rtdetr/rtdetr_dla34.fp16.onnx}
+  # regnet:
+  #   config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_regnet_6x_coco.yml
+  #   ckpt: ${models}/rtdetr/checkpoints/<your trained regnet>.pth
+  #   onnx: {fp32: ${models}/rtdetr/rtdetr_regnet.onnx, fp16: ${models}/rtdetr/rtdetr_regnet.fp16.onnx}
+
+# Export contract, shared by every backbone unless an entry overrides it. Stages 01-05
+# and the partition spec key off these tensor names — keep them in sync.
+onnx:
+  input_name: images
+  output_names: [pred_logits, pred_boxes]
+  img_size: 640
+  batch: 1
+  default: fp32
+  # int8 / partitioned variants get added per backbone as stages 02 and 04 produce them
+
+defaults:
+  device: cuda
+  backends: [torch, ort, trt]
+  providers: [CUDAExecutionProvider, CPUExecutionProvider]
+  score_thr: 0.6
+  iou_thr: 0.5
+  tf32: true
+  warmup: 1
+
+  # TensorRT timing cache: tactic timings are measured once and reused by later builds.
+  # Scoped per backbone — a cache is keyed by (GPU, TensorRT version) and build_engine
+  # sets ignore_mismatch=False so a foreign one is rejected outright, but keeping r18vd
+  # and r101vd entries apart also stops one backbone's timings from shaping the other's
+  # build. Set to null to build without a cache.
+  timing_cache: ${engines}/timing_{backbone}.cache
+
+# {backbone} expands to the selected entry, so runs never overwrite each other
+outputs:
+  figures: ${figures}/infer/rtdetr/{backbone}
+  table: ${tables}/rtdetr_{backbone}_map.md
+  export_artifacts: ${models}/rtdetr/artifacts/{backbone}
+
+partition_spec: ${configs}/rtdetr_precision_partition.yaml

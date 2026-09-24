@@ -1,0 +1,4 @@
+# Install in a separate host environment; see README.md.
+nvidia-modelopt[onnx]==0.44.0
+PyYAML>=6
+Pillow>=9

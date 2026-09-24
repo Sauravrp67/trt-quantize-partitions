@@ -12,7 +12,7 @@ __pycache__/
 .venv/
 venv/
 .env
-docs/
+# docs/
 artifacts/
 images/*
 videos/*
@@ -23,3 +23,24 @@ CLAUDE.md
 .vscode
 data
 tmp/
+notebooks/
+# Local deployment inputs, engines, evaluation output, and recordings.
+artifacts/
+samples/jetson/
+*.onnx.data
+*.cache.lock
+.venv-*/
+docs/
+
+# Preserve notebooks that were already tracked before the host directory move.
+!host/notebooks/
+host/notebooks/*
+!host/notebooks/model.py
+!host/notebooks/powerSampler.py
+!host/notebooks/precision_map.json
+!host/notebooks/rtdetr_build.ipynb
+!host/notebooks/trt_runner_test.ipynb
+results/tables/h1_boundary_pilot_r18vd.md
+results/tables/h1_boundary_pilot_r101vd.md
+results/tables/h1_boundary_pilot.md
+notebooks/
