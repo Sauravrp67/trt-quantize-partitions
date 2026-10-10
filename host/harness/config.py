@@ -204,7 +204,7 @@ def load_spec(name_or_path, backbone: Optional[str] = None) -> ModelSpec:
 
     return ModelSpec(
         name=raw.get("name", path.stem),
-        class_names=_load_class_names(raw["classes"]),
+        class_names=_load_class_names(entry.get("classes", raw["classes"])),
         input_name=onnx_cfg.get("input_name", "images"),
         output_names=list(onnx_cfg.get("output_names", [])),
         img_size=int(onnx_cfg.get("img_size", 640)),

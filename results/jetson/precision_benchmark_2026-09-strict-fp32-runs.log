@@ -1,0 +1,126 @@
+=== 2026-09-24T20:41:24+05:45 strict-fp32 run 1 ===
+[trt] engines/model_r101.fp32.plan  in=images  out=['pred_logits', 'pred_boxes']
+  50 frames  engine p50 168.98 ms
+  100 frames  engine p50 169.00 ms
+  150 frames  engine p50 168.95 ms
+  200 frames  engine p50 168.91 ms
+  250 frames  engine p50 168.86 ms
+  300 frames  engine p50 168.81 ms
+  350 frames  engine p50 168.80 ms
+  400 frames  engine p50 168.77 ms
+  450 frames  engine p50 168.74 ms
+{
+  "engine": "model_r101.fp32.plan",
+  "frames": 468,
+  "det_per_frame": 6.99,
+  "engine_p50_ms": 168.73,
+  "engine_p90_ms": 169.12,
+  "e2e_p50_ms": 215.77,
+  "pipeline_fps": 4.52,
+  "power": {
+    "VDD_IN": {
+      "mean_w": 16.76200305810398,
+      "peak_w": 18.3,
+      "n": 981
+    },
+    "VDD_CPU_GPU_CV": {
+      "mean_w": 9.296544342507644,
+      "peak_w": 10.389,
+      "n": 981
+    },
+    "VDD_SOC": {
+      "mean_w": 3.6447237512742103,
+      "peak_w": 3.832,
+      "n": 981
+    }
+  },
+  "vdd_in_mean_w": 16.76,
+  "vdd_cpu_gpu_cv_mean_w": 9.3,
+  "vdd_soc_mean_w": 3.64,
+  "j_per_frame": 3.707
+}
+[table] appended to results/precision_benchmark_2026-09/strict_fp32.md
+=== 2026-09-24T20:43:15+05:45 strict-fp32 run 2 ===
+[trt] engines/model_r101.fp32.plan  in=images  out=['pred_logits', 'pred_boxes']
+  50 frames  engine p50 168.88 ms
+  100 frames  engine p50 168.88 ms
+  150 frames  engine p50 168.86 ms
+  200 frames  engine p50 168.83 ms
+  250 frames  engine p50 168.83 ms
+  300 frames  engine p50 168.83 ms
+  350 frames  engine p50 168.83 ms
+  400 frames  engine p50 168.83 ms
+  450 frames  engine p50 168.83 ms
+{
+  "engine": "model_r101.fp32.plan",
+  "frames": 468,
+  "det_per_frame": 6.99,
+  "engine_p50_ms": 168.83,
+  "engine_p90_ms": 169.14,
+  "e2e_p50_ms": 216.1,
+  "pipeline_fps": 4.51,
+  "power": {
+    "VDD_IN": {
+      "mean_w": 16.86020731707317,
+      "peak_w": 18.144,
+      "n": 984
+    },
+    "VDD_CPU_GPU_CV": {
+      "mean_w": 9.349352642276424,
+      "peak_w": 10.217,
+      "n": 984
+    },
+    "VDD_SOC": {
+      "mean_w": 3.6762896341463414,
+      "peak_w": 3.864,
+      "n": 984
+    }
+  },
+  "vdd_in_mean_w": 16.86,
+  "vdd_cpu_gpu_cv_mean_w": 9.35,
+  "vdd_soc_mean_w": 3.68,
+  "j_per_frame": 3.739
+}
+[table] appended to results/precision_benchmark_2026-09/strict_fp32.md
+=== 2026-09-24T20:45:05+05:45 strict-fp32 run 3 ===
+[trt] engines/model_r101.fp32.plan  in=images  out=['pred_logits', 'pred_boxes']
+  50 frames  engine p50 168.64 ms
+  100 frames  engine p50 168.67 ms
+  150 frames  engine p50 168.67 ms
+  200 frames  engine p50 168.65 ms
+  250 frames  engine p50 168.66 ms
+  300 frames  engine p50 168.65 ms
+  350 frames  engine p50 168.65 ms
+  400 frames  engine p50 168.64 ms
+  450 frames  engine p50 168.63 ms
+{
+  "engine": "model_r101.fp32.plan",
+  "frames": 468,
+  "det_per_frame": 6.99,
+  "engine_p50_ms": 168.63,
+  "engine_p90_ms": 168.91,
+  "e2e_p50_ms": 216.5,
+  "pipeline_fps": 4.5,
+  "power": {
+    "VDD_IN": {
+      "mean_w": 16.841030456852792,
+      "peak_w": 18.27,
+      "n": 985
+    },
+    "VDD_CPU_GPU_CV": {
+      "mean_w": 9.340897461928934,
+      "peak_w": 10.316,
+      "n": 985
+    },
+    "VDD_SOC": {
+      "mean_w": 3.670489340101523,
+      "peak_w": 3.858,
+      "n": 985
+    }
+  },
+  "vdd_in_mean_w": 16.84,
+  "vdd_cpu_gpu_cv_mean_w": 9.34,
+  "vdd_soc_mean_w": 3.67,
+  "j_per_frame": 3.738
+}
+[table] appended to results/precision_benchmark_2026-09/strict_fp32.md

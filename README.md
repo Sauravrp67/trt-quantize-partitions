@@ -34,7 +34,7 @@ Jetson Orin Nano · TensorRT 10.16.2 · RT-DETR R101-vd · batch 1 · 640 × 640
 | INT8 | 1 | 31.58 | 35.75 | 88.42 | 10.83 | 8.33 | 0.769 |
 | INT8 | 2 | 31.85 | 35.71 | 89.34 | 10.76 | 8.29 | 0.770 |
 
-Source: [recorded results](results/jetson/benchmark.md). All recorded runs are shown; run numbers follow their order within each precision variant.
+Source: [recorded demo runs](results/jetson/benchmark.md); see the [controlled precision benchmark](results/jetson/precision_benchmark_2026-09.md) for repeated FP32, FP16, mixed-BF16, and INT8 timings, plus the FP8 hardware-support check.
 
 - **Inference latency** is wall-clock time around the TensorRT runner, including host/device transfers and runner overhead.
 - **End-to-end latency** includes preprocessing, inference, postprocessing, and drawing/video writing when enabled. It excludes frame capture/decode.
@@ -70,16 +70,27 @@ cpp/build/rtdetr-infer \
 
 Add `--show` to display video; `--save` alone writes an MP4 headlessly. Use `--source 0` for a camera. Engine plans are built on the target GPU and reused for inference. The runtime supports batch 1 and fixed image dimensions defined in the contract; an arbitrary ONNX export is not automatically compatible.
 
+The supplied contracts cover these export interfaces:
+
+| Contract | Output format |
+| --- | --- |
+| `cpp/models/v1-r101.json` | Raw query logits and boxes |
+| `cpp/models/v2-r50.json` | Decoded labels, boxes, and scores |
+| `cpp/models/v3-r18.json` | Paddle detection rows |
+| `cpp/models/v4-s.json` | Decoded labels, boxes, and scores |
+
+Other backbones or precision variants can reuse a contract when tensor names, shapes, preprocessing, and output semantics match. Internal FP32, FP16, INT8, or other precision is supplied by the ONNX graph and must be supported by the target TensorRT installation and GPU. The runtime does not convert precision.
+
 See the [C++ instructions](cpp/README.md) for TensorRT shape profiles, model contracts, runtime options, and a same-plan Python timing comparison. The historical Jetson table above came from the previous Python deployment workflow; the [C++ validation record](cpp/results/validation.md) reports separate same-plan comparisons.
 
 ## Export and quantize on a host
 
-Model preparation runs on the host. Set up PyTorch, torchvision, and the [host dependencies](host/README.md#environment), initialize the RT-DETR submodule, and place the matching R101-vd checkpoint in `host/models/rtdetr/checkpoints/`. The model paths and selected checkpoint are defined in `host/configs/rtdetr.yaml`.
+Model preparation runs on the host. Set up PyTorch, torchvision, and the [host dependencies](host/README.md#environment), initialize the `third_party/RT-DETR` submodule, and place the matching R101-vd checkpoint in `host/models/rtdetr/checkpoints/`. The model paths and selected checkpoint are defined in `host/configs/rtdetr.yaml`.
 
 Export the FP32 ONNX model, then convert it to FP16:
 
 ```bash
-git submodule update --init --recursive
+git submodule update --init third_party/RT-DETR
 python host/models/rtdetr/export.py --backbone r101vd
 PYTHONPATH=host python -c "from harness.precision import to_fp16; to_fp16('host/models/rtdetr/model_r101.onnx', 'host/models/rtdetr/model_r101.fp16.onnx')"
 ```
@@ -94,7 +105,7 @@ python host/pipeline/quantize.py --backbone r101vd --calib 200
 
 The three outputs are `host/models/rtdetr/model_r101.onnx`, `model_r101.fp16.onnx`, and `model_r101.int8.onnx`. The INT8 script calibrates with COCO images and writes quantize/dequantize nodes into the ONNX graph. FP16 types are also encoded in its ONNX graph. Copy the desired ONNX files to the target machine, then build their engines there with `cpp/build_engine.sh`; each engine keeps the precision specified by its graph.
 
-See [host preparation](host/README.md) for its environment and export workflow. The host experiments are separate from the C++ deployment runtime.
+See [host preparation](host/README.md), the [variant catalog](host/models/variants.md), and the [complete export guide](host/models/README.md) for v1–v4 preparation. The host experiments are separate from the C++ deployment runtime.
 
 ## Repository layout
 
@@ -107,6 +118,6 @@ See [host preparation](host/README.md) for its environment and export workflow. 
 | [results/jetson/](results/jetson/) | Recorded Jetson measurements and engine build logs. |
 | [samples/](samples/) | Sample recording information; large local videos are excluded from Git. |
 | [scripts/](scripts/) | Dataset download helpers for host experiments. |
-| [RT-DETR/](RT-DETR/) | Upstream submodule, needed only for host preparation. |
+| [third_party/](third_party/) | Pinned upstream model source, needed only for host preparation. |
 
 The measured Jetson workflow covers FP32, FP16, and INT8 deployment. Sensitivity-guided partitioning remains under development and is not part of the results above.

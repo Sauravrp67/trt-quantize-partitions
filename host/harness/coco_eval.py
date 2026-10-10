@@ -6,6 +6,8 @@ from PIL import Image
 from tqdm import tqdm
 from harness.compare import Detections
 from harness.paths import COCO_VAL_IMAGES, COCO_VAL_ANN
+from harness.config import _load_class_names
+from harness.paths import CONFIGS_DIR
 
 COCO80_TO_CATID = [1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,22,23,24,25,
     27,28,31,32,33,34,35,36,37,38,39,40,41,42,43,44,46,47,48,49,50,51,52,53,54,55,
@@ -25,6 +27,9 @@ def detections_to_coco(image_id: int, det: Detections) -> list[dict]:
 
 
 def evaluate(run_fn, adapter, *, limit=None, desc="COCO eval") -> dict:
+    if adapter.spec.class_names != _load_class_names(CONFIGS_DIR / "classes/coco80.yaml"):
+        raise ValueError("COCO evaluation requires the COCO80 class order; "
+                         "VOC and LVIS variants need their respective dataset evaluators")
     coco = COCO(str(COCO_VAL_ANN))
     img_ids = coco.getImgIds()
     if limit:

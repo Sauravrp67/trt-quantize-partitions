@@ -68,6 +68,33 @@ def test_backbone_entry_overrides_the_shared_onnx_contract(tmp_path):
     assert load_spec(path, "big").input_name == "images"  # unset keys still inherited
 
 
+def test_backbone_can_override_the_class_vocabulary(tmp_path):
+    body = BODY.replace("    img_size: 800", "    img_size: 800\n    classes: [bird, dog, horse]")
+    path = _write(tmp_path, body)
+    assert load_spec(path).class_names == ["person", "cat"]
+    assert load_spec(path, "big").class_names == ["bird", "dog", "horse"]
+
+
+@pytest.mark.parametrize("family,directory", [
+    ("rtdetr", paths.RTDETR_PYTORCH_ROOT / "configs/rtdetr"),
+    ("rtdetrv2", paths.RTDETRV2_PYTORCH_ROOT / "configs/rtdetrv2"),
+    ("rtdetrv3", paths.RTDETRV3_ROOT / "configs/rtdetrv3"),
+    ("rtdetrv4", paths.RTDETRV4_ROOT / "configs/rtv4"),
+])
+def test_every_upstream_model_config_has_a_distinct_registry_entry(family, directory):
+    specs = [load_spec(family, name) for name in load_spec(family).backbones]
+    assert {spec.torch_config for spec in specs} == set(directory.glob("*.yml"))
+    assert len({spec.torch_config for spec in specs}) == len(specs)
+    assert len({spec.ckpt for spec in specs}) == len(specs)
+    assert len({spec.onnx_path("fp32") for spec in specs}) == len(specs)
+    for spec in specs:
+        assert spec.num_classes == (20 if spec.backbone.endswith("_voc") else
+                                    1203 if spec.backbone.endswith("_lvis") else 80)
+        assert spec.onnx_path("fp32") != spec.onnx_path("fp16")
+        assert spec.raw["backbones"][spec.backbone]["checkpoint_status"] in {
+            "released", "user_supplied"}
+
+
 def test_unknown_backbone_lists_the_registry(tmp_path):
     with pytest.raises(ValueError, match=r"unknown backbone 'nope'.*big.*small"):
         load_spec(_write(tmp_path, BODY), "nope")
@@ -116,6 +143,17 @@ def test_bad_default_variant_is_rejected(tmp_path):
 
 def test_spec_name_resolves_into_configs_dir():
     assert spec_path("rtdetr") == paths.CONFIGS_DIR / "rtdetr.yaml"
+
+
+@pytest.mark.parametrize("family,root", [
+    ("rtdetr", paths.RTDETR_ROOT),
+    ("rtdetrv2", paths.RTDETR_ROOT),
+    ("rtdetrv3", paths.RTDETRV3_ROOT),
+    ("rtdetrv4", paths.RTDETRV4_ROOT),
+])
+def test_source_driven_specs_use_registered_upstream_roots(family, root):
+    spec = load_spec(family)
+    assert spec.torch_config.is_relative_to(root)
 
 
 def test_shipped_rtdetr_spec_loads():

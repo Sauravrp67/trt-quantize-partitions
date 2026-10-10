@@ -38,7 +38,7 @@ def install_src_package() -> None:
     if _SRC_INSTALLED:
         return
     require(RTDETR_SRC_ROOT, "RT-DETR PyTorch checkout",
-            "run: git submodule update --init --recursive  (or set $RTDETR_ROOT)")
+            "run: git submodule update --init third_party/RT-DETR  (or set $RTDETR_ROOT)")
     if str(RTDETR_PYTORCH_ROOT) not in sys.path:
         sys.path.insert(0, str(RTDETR_PYTORCH_ROOT))
     pkg = types.ModuleType("src")
@@ -62,6 +62,8 @@ def build_config(spec: ModelSpec, *, weights: bool = True):
 
     require(spec.torch_config, "RT-DETR model config")
     config = YAMLConfig(str(spec.torch_config), resume=str(spec.ckpt))
+    from models.rtdetr.backbones import prepare_backbones
+    prepare_backbones(config.yaml_cfg)
     if weights:
         load_weights(config, spec)
     return config
@@ -75,7 +77,7 @@ def load_weights(config, spec: ModelSpec) -> None:
     """
     require(spec.ckpt, "RT-DETR checkpoint",
             "download it into host/models/rtdetr/checkpoints/ (see host/models/rtdetr/README.md)")
-    ckpt = torch.load(str(spec.ckpt), map_location="cpu")
+    ckpt = torch.load(str(spec.ckpt), map_location="cpu", weights_only=False)
     state = ckpt["ema"]["module"] if "ema" in ckpt else ckpt["model"]
     config.model.load_state_dict(state)
 

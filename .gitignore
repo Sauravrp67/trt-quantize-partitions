@@ -3,6 +3,8 @@
 *.engine
 *.cache
 *.pth
+*.pdparams
+host/models/*/*.export.json
 checkpoints/
 models/*/checkpoints/
 results/engines/
@@ -22,7 +24,7 @@ CLAUDE.md
 .claude
 .codex
 .vscode
-data
+/data/
 tmp/
 notebooks/
 # Local deployment inputs, engines, evaluation output, and recordings.

@@ -20,6 +20,9 @@ from .base import BaseAdapter, Detections, DetectorAdapter, resolve_device
 # spec name (configs/<name>.yaml) -> "module:class", imported on first use
 ADAPTERS: dict[str, str] = {
     "rtdetr": "harness.adapter.rtdetr:RTDETRAdapter",
+    "rtdetrv2": "harness.adapter.rtdetr_family:RTDETRv2Adapter",
+    "rtdetrv3": "harness.adapter.rtdetr_family:RTDETRv3Adapter",
+    "rtdetrv4": "harness.adapter.rtdetr_family:RTDETRv4Adapter",
 }
 
 

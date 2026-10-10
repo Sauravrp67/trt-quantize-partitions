@@ -51,7 +51,7 @@ def _write_table(rows, out_path: Path, *, spec, backend_label: str, n_images: in
             d50 = f"{r['mAP50'] - ref['mAP50']:+.4f}"
         lines.append(f"| `{r['model']}` | {r['mAP5095']:.4f} | {r['mAP50']:.4f} | {d95} | {d50} |")
     lines += ["", "_Accuracy only — no score threshold applied (COCOeval sweeps them). "
-              "For latency see `host/models/rtdetr/infer.py` or `trtexec` with locked clocks._", ""]
+              "For latency see the host inference CLI or `trtexec` with locked clocks._", ""]
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text("\n".join(lines))
     return out_path
@@ -95,7 +95,7 @@ def main() -> None:
     onnx_paths = [spec.onnx_path(r) for r in refs]
     if args.backend != "torch":
         for path in onnx_paths:
-            require(path, "ONNX model", "build it with host/models/rtdetr/export.py")
+            require(path, "ONNX model", "build it with host/pipeline/export.py")
 
     # one adapter (loads the checkpoint + postprocessor once); the ONNX it points at is
     # swapped per model, since that is what the ort/trt backends read on construction

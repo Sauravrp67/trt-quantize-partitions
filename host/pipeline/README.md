@@ -1,11 +1,12 @@
 # Host pipeline
 
-The scripts here handle shared ONNX preparation and analysis. Model-specific checkpoint loading and export stay in `host/models/<model>/`.
+The scripts here handle shared ONNX preparation and analysis. Model-specific checkpoint loading and export stay in `host/models/<model>/`; pinned source stays in `third_party/`.
 
 ```mermaid
 flowchart TD
     A[Model config and checkpoint] --> B[export.py]
     B --> C[Model-specific exporter<br/>host/models/&lt;model&gt;/export.py]
+    U[Pinned source<br/>third_party/] --> C
     C --> D[FP32 ONNX<br/>validated with export metadata]
     D --> E[graph_surgery.py<br/>remove dead nodes, name and sort]
     E --> F[Prepared FP32 ONNX and node manifest]
@@ -18,9 +19,6 @@ flowchart TD
     I --> J
     K[Evaluation images] --> J
     J --> L[Activation divergence report]
-    L --> M[partition.py]
-    M --> N[compile_inspect.py]
-    N --> O[benchmark.py]
 ```
 
 `graph_surgery.py` is optional for conversion and calibration. `sensitivity_map.py` uses its prepared graph and node manifest when available; otherwise it reads the FP32 export. Precision variants are derived from the registered FP32 ONNX model. FP16 conversion uses the shared precision utility, while INT8 uses ModelOpt and calibration images.
@@ -33,6 +31,8 @@ Run from the repository root. Export and graph preparation use the selected mode
 python host/pipeline/export.py --spec rtdetr --backbone r101vd
 python host/pipeline/graph_surgery.py --spec rtdetr --backbone r101vd
 ```
+
+Use `--spec rtdetrv2`, `rtdetrv3`, or `rtdetrv4` with a registered backbone to export those families. Initialize their pinned source under [`third_party/`](../../third_party/) and follow the checkpoint and dependency instructions in each `host/models/<model>/README.md`. Quantization reads the exported ONNX and the model adapter's preprocessing; it does not import the upstream source. The shared stages rely on the same static raw-output ONNX contract; their accuracy and Jetson compatibility must be checked for each exported model.
 
 Convert FP32 ONNX to FP16:
 
@@ -55,7 +55,7 @@ python host/pipeline/sensitivity_map.py \
 
 The sensitivity report measures intermediate tensor differences against FP32. It screens nodes for further investigation; it does not measure mAP or prove that a node causes an accuracy drop. Run `host/models/rtdetr/eval_map.py` for COCO mAP.
 
-`partition.py`, `compile_inspect.py`, and `benchmark.py` are placeholders and do not yet perform their described work. For TensorRT engine builds and Jetson inference, use [`cpp/`](../../cpp/README.md).
+For TensorRT engine builds and Jetson inference, use [`cpp/`](../../cpp/README.md). Precision partitioning and additional analysis remain research tasks; this directory contains the implemented export, graph preparation, quantization, and sensitivity tools.
 
 ## Scripts
 
@@ -65,6 +65,3 @@ The sensitivity report measures intermediate tensor differences against FP32. It
 | `graph_surgery.py` | Remove dead nodes, normalize graph names/order, and write a node manifest | Implemented |
 | `quantize.py` | Calibrate and quantize ONNX to INT8 with ModelOpt | Implemented |
 | `sensitivity_map.py` | Compare intermediate activations across ONNX precision variants | Implemented |
-| `partition.py` | Generate precision partition constraints | Placeholder |
-| `compile_inspect.py` | Build and inspect TensorRT engines | Placeholder |
-| `benchmark.py` | Measure model accuracy and runtime | Placeholder |
