@@ -1,0 +1,57 @@
+# Explicit registry of every top-level model config in the pinned upstream family.
+# Include/base configs and other detector families are not model variants.
+# checkpoint_status: released (upstream download reference) or user_supplied.
+name: rtdetrv4
+classes: ${configs}/classes/coco80.yaml
+backbone: s
+backbones:
+  s:
+    config: ${rtdetrv4}/configs/rtv4/rtv4_hgnetv2_s_coco.yml
+    ckpt: ${models}/rtdetrv4/checkpoints/rtv4_hgnetv2_s_coco.pth
+    onnx:
+      fp32: ${models}/rtdetrv4/rtdetrv4_s.onnx
+      fp16: ${models}/rtdetrv4/rtdetrv4_s.fp16.onnx
+    checkpoint_status: released
+    checkpoint_url: https://drive.google.com/file/d/1jDAVxblqRPEWed7Hxm6GwcEl7zn72U6z
+  m:
+    config: ${rtdetrv4}/configs/rtv4/rtv4_hgnetv2_m_coco.yml
+    ckpt: ${models}/rtdetrv4/checkpoints/rtv4_hgnetv2_m_coco.pth
+    onnx:
+      fp32: ${models}/rtdetrv4/rtdetrv4_m.onnx
+      fp16: ${models}/rtdetrv4/rtdetrv4_m.fp16.onnx
+    checkpoint_status: released
+    checkpoint_url: https://drive.google.com/file/d/1O-YpP4X-quuOXbi96y2TKkztbjroP5mX
+  l:
+    config: ${rtdetrv4}/configs/rtv4/rtv4_hgnetv2_l_coco.yml
+    ckpt: ${models}/rtdetrv4/checkpoints/rtv4_hgnetv2_l_coco.pth
+    onnx:
+      fp32: ${models}/rtdetrv4/rtdetrv4_l.onnx
+      fp16: ${models}/rtdetrv4/rtdetrv4_l.fp16.onnx
+    checkpoint_status: released
+    checkpoint_url: https://drive.google.com/file/d/1shO9EzZvXZyKedE2urLsN4dwEv8Jqa_8
+  x:
+    config: ${rtdetrv4}/configs/rtv4/rtv4_hgnetv2_x_coco.yml
+    ckpt: ${models}/rtdetrv4/checkpoints/rtv4_hgnetv2_x_coco.pth
+    onnx:
+      fp32: ${models}/rtdetrv4/rtdetrv4_x.onnx
+      fp16: ${models}/rtdetrv4/rtdetrv4_x.fp16.onnx
+    checkpoint_status: released
+    checkpoint_url: https://drive.google.com/file/d/19gnkMTgFveJsrOvSmEPQXCTG6v9oQHN3
+onnx:
+  input_name: images
+  output_names: [pred_logits, pred_boxes]
+  img_size: 640
+  batch: 1
+  default: fp32
+defaults:
+  device: cuda
+  backends: [ort, trt]
+  providers: [CUDAExecutionProvider, CPUExecutionProvider]
+  score_thr: 0.5
+  tf32: true
+  warmup: 10
+  timing_cache: ${engines}/timing_rtdetrv4_{backbone}.cache
+outputs:
+  figures: ${figures}/infer/rtdetrv4/{backbone}
+  table: ${tables}/rtdetrv4_{backbone}_map.md
+  export_artifacts: ${models}/rtdetrv4/artifacts/{backbone}

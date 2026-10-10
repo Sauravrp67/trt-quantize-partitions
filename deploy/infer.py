@@ -22,6 +22,16 @@ if __package__:
 else:
     from runtime import IMG_SIZE, TRTSession, preprocess, postprocess
 FONT = cv2.FONT_HERSHEY_DUPLEX
+STAGES = (
+    ("read", "Frame read/decode"),
+    ("preprocess", "Preprocessing"),
+    ("engine", "Engine inference"),
+    ("postprocess", "Postprocessing/filter"),
+    ("boxes", "Box drawing"),
+    ("hud", "HUD drawing"),
+    ("video_write", "Video encode/write"),
+    ("display", "Display"),
+)
 
 
 def class_palette(n: int) -> np.ndarray:
@@ -214,7 +224,7 @@ def load_class_names(path: Path | None) -> list[str]:
 
 
 def write_row(table: Path, row: dict) -> None:
-    cols = [k for k in row if k != "power"]
+    cols = [k for k in row if k not in ("power", "stages_mean_ms")]
     table.parent.mkdir(parents=True, exist_ok=True)
     if not table.exists():
         table.write_text("| " + " | ".join(cols) + " |\n| "
@@ -223,12 +233,57 @@ def write_row(table: Path, row: dict) -> None:
         f.write("| " + " | ".join(str(row[c]) for c in cols) + " |\n")
 
 
+def write_profile(path: Path, row: dict, samples: dict[str, list[float]],
+                  source: str, save: str | None) -> None:
+    """Append an additive per-frame timing breakdown for one engine run."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not path.exists():
+        path.write_text(
+            "# RT-DETR video pipeline profile\n\n"
+            "Stage means sum to the measured frame-loop mean. Per-stage medians "
+            "do not generally sum to the frame median. Frame read/decode is "
+            "excluded from processing e2e but included in pipeline FPS. "
+            "Engine inference includes runner transfers and synchronization. "
+            "Video writer finalization after the loop is excluded.\n")
+
+    frame = np.asarray(samples["frame"], dtype=np.float64)
+    frame_mean = float(np.mean(frame))
+    lines = [
+        f"\n## {Path(source).name} · {row['engine']}\n",
+        f"Source: `{source}`  ",
+        f"Saved video: `{save}`  " if save else "Saved video: none  ",
+        f"Frames: {row['frames']}  ",
+        f"Detections/frame: {row['det_per_frame']}  ",
+        f"Engine p50/p90: {row['engine_p50_ms']}/{row['engine_p90_ms']} ms  ",
+        f"Processing e2e p50: {row['e2e_p50_ms']} ms  ",
+        f"Pipeline FPS: {row['pipeline_fps']}\n",
+        "| Stage | Mean (ms) | p50 (ms) | p90 (ms) | Frame share |",
+        "| --- | ---: | ---: | ---: | ---: |",
+    ]
+    for key, label in STAGES:
+        values = np.asarray(samples[key], dtype=np.float64)
+        mean = float(np.mean(values))
+        lines.append(f"| {label} | {mean:.2f} | {np.median(values):.2f} | "
+                     f"{np.percentile(values, 90):.2f} | "
+                     f"{100 * mean / frame_mean:.1f}% |")
+    lines.append(f"| **Frame loop** | **{frame_mean:.2f}** | "
+                 f"**{np.median(frame):.2f}** | "
+                 f"**{np.percentile(frame, 90):.2f}** | **100%** |")
+    if "vdd_in_mean_w" in row:
+        lines.append(f"\nMean board power: {row['vdd_in_mean_w']} W; "
+                     f"energy: {row['j_per_frame']} J/frame.\n")
+    with path.open("a") as f:
+        f.write("\n".join(lines) + "\n")
+
+
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(description="RT-DETR TensorRT inference on Jetson")
     ap.add_argument("--engine", required=True, help="a .plan built on this board")
     ap.add_argument("--source", required=True, help="video file, stream URL, or camera index")
     ap.add_argument("--save", default=None, help="write an annotated .mp4 here")
     ap.add_argument("--table", default=None, help="append a markdown summary row here")
+    ap.add_argument("--profile", default=None,
+                    help="append a per-stage timing breakdown to this markdown file")
     ap.add_argument("--classes", default=str(Path(__file__).resolve().parent / "configs" / "coco80.yaml"))
     ap.add_argument("--score-thr", type=float, default=0.6)
     ap.add_argument("--max-frames", type=int, default=None)
@@ -274,6 +329,8 @@ def main() -> None:
 
         lat_ms: list[float] = []
         e2e_ms: list[float] = []
+        stage_ms: dict[str, list[float]] = {key: [] for key, _ in STAGES}
+        stage_ms["frame"] = []
         n_det = 0
         power = TegraPower() if args.power else None
 
@@ -281,33 +338,36 @@ def main() -> None:
             wall0 = time.perf_counter()
             i = 0
             while args.max_frames is None or i < args.max_frames:
+                frame_start = time.perf_counter()
                 ok, bgr = cap.read()
+                read_end = time.perf_counter()
                 if not ok:
                     break
-                t0 = time.perf_counter()
                 x = preprocess(np.ascontiguousarray(bgr[:, :, ::-1]))
-
-                t1 = time.perf_counter()
+                preprocess_end = time.perf_counter()
                 out = sess.run(x)
-                t2 = time.perf_counter()
+                engine_end = time.perf_counter()
 
                 labels, boxes, scores = postprocess(out["pred_logits"], out["pred_boxes"],
                                                     (bgr.shape[1], bgr.shape[0]))
                 keep = scores >= args.score_thr
                 labels, boxes, scores = labels[keep], boxes[keep], scores[keep]
                 n_det += len(labels)
-                engine_ms = (t2 - t1) * 1e3
+                postprocess_end = time.perf_counter()
+                engine_ms = (engine_end - preprocess_end) * 1e3
 
                 if not args.no_draw:
                     if overlay is None:
                         overlay = Overlay(bgr.shape[1], bgr.shape[0], names,
                                           Path(args.engine).name)
                     overlay.boxes(bgr, labels, boxes, scores)
-                    if not args.no_hud:
-                        prev = e2e_ms[-1] if e2e_ms else engine_ms
-                        overlay.hud(bgr, n_det=len(labels), engine_ms=engine_ms, e2e_ms=prev,
-                                    frame_i=i + 1, total=total,
-                                    watts=power.latest() if power else None)
+                boxes_end = time.perf_counter()
+                if not args.no_draw and not args.no_hud:
+                    prev = e2e_ms[-1] if e2e_ms else engine_ms
+                    overlay.hud(bgr, n_det=len(labels), engine_ms=engine_ms, e2e_ms=prev,
+                                frame_i=i + 1, total=total,
+                                watts=power.latest() if power else None)
+                hud_end = time.perf_counter()
                 if args.save:
                     if writer is None:
                         Path(args.save).parent.mkdir(parents=True, exist_ok=True)
@@ -316,14 +376,22 @@ def main() -> None:
                         if not writer.isOpened():
                             raise RuntimeError(f"Cannot write video: {args.save}")
                     writer.write(bgr)
+                write_end = time.perf_counter()
 
                 if args.show:
                     cv2.imshow("RT-DETR", bgr)
                     stop = cv2.waitKey(1) & 0xFF == ord("q")
                 else:
                     stop = False
+                display_end = time.perf_counter()
+
+                boundaries = (frame_start, read_end, preprocess_end, engine_end,
+                              postprocess_end, boxes_end, hud_end, write_end, display_end)
+                for (key, _), start, end in zip(STAGES, boundaries, boundaries[1:]):
+                    stage_ms[key].append((end - start) * 1e3)
+                stage_ms["frame"].append((display_end - frame_start) * 1e3)
                 lat_ms.append(engine_ms)
-                e2e_ms.append((time.perf_counter() - t0) * 1e3)
+                e2e_ms.append((display_end - read_end) * 1e3)
                 i += 1
                 if stop:
                     break
@@ -336,6 +404,7 @@ def main() -> None:
 
         a = np.asarray(lat_ms)
         row = {
+            "source": Path(args.source).name,
             "engine": Path(args.engine).name,
             "frames": len(a),
             "det_per_frame": round(n_det / max(len(a), 1), 2),
@@ -343,6 +412,8 @@ def main() -> None:
             "engine_p90_ms": round(float(np.percentile(a, 90)), 2),
             "e2e_p50_ms": round(float(np.median(e2e_ms)), 2),
             "pipeline_fps": round(len(a) / wall, 2),
+            "stages_mean_ms": {key: round(float(np.mean(stage_ms[key])), 2)
+                               for key, _ in STAGES},
         }
         if power is not None:
             summary = power.summary()
@@ -356,6 +427,9 @@ def main() -> None:
         if args.table:
             write_row(Path(args.table), row)
             print(f"[table] appended to {args.table}")
+        if args.profile:
+            write_profile(Path(args.profile), row, stage_ms, args.source, args.save)
+            print(f"[profile] appended to {args.profile}")
 
     finally:
         if cap is not None:

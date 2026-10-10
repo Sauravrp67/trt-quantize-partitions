@@ -3,6 +3,8 @@
 *.engine
 *.cache
 *.pth
+*.pdparams
+host/models/*/*.export.json
 checkpoints/
 models/*/checkpoints/
 results/engines/

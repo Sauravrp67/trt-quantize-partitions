@@ -1,6 +1,6 @@
 # Jetson deployment
 
-Run prepared RT-DETR ONNX models on the Jetson Orin Nano. This folder is self-contained: it can be used inside a clone or copied to the board on its own. It does not import the host harness, PyTorch, torchvision, ONNX Runtime, ModelOpt, or the upstream RT-DETR repository.
+Run prepared RT-DETR ONNX models on the Jetson Orin Nano. This folder is self-contained: it can be used inside a clone or copied to the board on its own. It does not import the host harness, PyTorch, torchvision, ONNX Runtime, ModelOpt, or the source submodules under `third_party/`.
 
 ## Setup
 
@@ -48,6 +48,7 @@ python deploy/infer.py \
   --source /path/to/input.mp4 \
   --save artifacts/output/fp16.mp4 \
   --table artifacts/output/benchmark.md \
+  --profile artifacts/output/stage-profile.md \
   --score-thr 0.5 --warmup 10 --power
 ```
 
@@ -61,6 +62,15 @@ Use `--source 0 --show` for a camera with local display, or `--source 'rtsp://ho
 | `--no-hud` | Draw boxes without the statistics overlay. |
 | `--classes FILE` | Override the bundled COCO class names. |
 | `--max-frames N` | Stop after N frames. |
+| `--profile FILE` | Append a per-stage timing breakdown to a Markdown report. |
+
+The profile separates frame read/decode, preprocessing, TensorRT runner execution,
+postprocessing/filtering, box drawing, HUD drawing, video encode/write, and display.
+It reports per-stage mean, p50, and p90 times. The stage means add up to the
+per-frame loop mean; the medians do not. `e2e_p50_ms` starts after frame read
+and ends after any drawing, writing, and display. `pipeline_fps` includes frame
+read/decode, while video writer finalization after the loop is excluded. For a
+model-path benchmark, omit `--save` and use `--no-draw`.
 
 Preprocessing, decoding, and TensorRT execution live in `runtime.py` and are shared with evaluation. Visualization and power sampling live in `infer.py`.
 

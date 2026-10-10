@@ -6,9 +6,11 @@ from typing import Dict, Optional
 
 __all__ = [
     "REPO_ROOT", "CONFIGS_DIR", "MODELS_DIR", "HARNESS_DIR", "PIPELINE_DIR",
+    "THIRD_PARTY_DIR",
     "DATA_DIR", "COCO_DIR", "COCO_VAL_IMAGES", "COCO_VAL_ANN",
     "RESULTS_DIR", "FIGURES_DIR", "TABLES_DIR", "ENGINES_DIR",
     "RTDETR_ROOT", "RTDETR_PYTORCH_ROOT", "RTDETR_SRC_ROOT",
+    "RTDETRV2_PYTORCH_ROOT", "RTDETRV3_ROOT", "RTDETRV4_ROOT",
     "ROOTS", "find_repo_root", "resolve", "require",
 ]
 
@@ -51,10 +53,14 @@ FIGURES_DIR = RESULTS_DIR / "figures"
 TABLES_DIR = RESULTS_DIR / "tables"
 ENGINES_DIR = RESULTS_DIR / "engines"
 
-# submodules (read-only; see the hard rule in CLAUDE.md)
-RTDETR_ROOT = _env_dir("RTDETR_ROOT", REPO_ROOT / "RT-DETR")
+# Pinned upstream source trees. Keep model code out of host/models/.
+THIRD_PARTY_DIR = REPO_ROOT / "third_party"
+RTDETR_ROOT = _env_dir("RTDETR_ROOT", THIRD_PARTY_DIR / "RT-DETR")
 RTDETR_PYTORCH_ROOT = RTDETR_ROOT / "rtdetr_pytorch"
 RTDETR_SRC_ROOT = RTDETR_PYTORCH_ROOT / "src"
+RTDETRV2_PYTORCH_ROOT = RTDETR_ROOT / "rtdetrv2_pytorch"
+RTDETRV3_ROOT = _env_dir("RTDETRV3_ROOT", THIRD_PARTY_DIR / "RT-DETRv3")
+RTDETRV4_ROOT = _env_dir("RTDETRV4_ROOT", THIRD_PARTY_DIR / "RT-DETRv4")
 
 #: names usable as ``${...}`` inside ``configs/*.yaml`` (see :mod:`harness.config`)
 ROOTS: Dict[str, Path] = {
@@ -71,6 +77,9 @@ ROOTS: Dict[str, Path] = {
     "rtdetr": RTDETR_ROOT,
     "rtdetr_pytorch": RTDETR_PYTORCH_ROOT,
     "rtdetr_src": RTDETR_SRC_ROOT,
+    "rtdetrv2_pytorch": RTDETRV2_PYTORCH_ROOT,
+    "rtdetrv3": RTDETRV3_ROOT,
+    "rtdetrv4": RTDETRV4_ROOT,
 }
 
 

@@ -1,0 +1,522 @@
+=== 2026-09-24T20:20:51+05:45 model_r101.plan ===
+[W] 'colored' module is not installed, will not use colors when logging. To enable colors, please install the 'colored' module: python3 -m pip install colored
+[W] Using an engine plan file across different models of devices is not supported and is likely to affect performance or even cause errors or deadlock.
+[trt] engines/model_r101.plan  in=images  out=['pred_logits', 'pred_boxes']
+  50 frames  engine p50 76.62 ms
+  100 frames  engine p50 76.62 ms
+  150 frames  engine p50 76.62 ms
+  200 frames  engine p50 76.61 ms
+  250 frames  engine p50 76.62 ms
+  300 frames  engine p50 76.62 ms
+  350 frames  engine p50 76.61 ms
+  400 frames  engine p50 76.62 ms
+  450 frames  engine p50 76.63 ms
+{
+  "engine": "model_r101.plan",
+  "frames": 468,
+  "det_per_frame": 6.99,
+  "engine_p50_ms": 76.63,
+  "engine_p90_ms": 77.2,
+  "e2e_p50_ms": 110.48,
+  "pipeline_fps": 8.53,
+  "power": {
+    "VDD_IN": {
+      "mean_w": 15.704475915221579,
+      "peak_w": 18.134,
+      "n": 519
+    },
+    "VDD_CPU_GPU_CV": {
+      "mean_w": 8.238317919075143,
+      "peak_w": 9.844,
+      "n": 519
+    },
+    "VDD_SOC": {
+      "mean_w": 3.7096666666666667,
+      "peak_w": 4.021,
+      "n": 519
+    }
+  },
+  "vdd_in_mean_w": 15.7,
+  "vdd_cpu_gpu_cv_mean_w": 8.24,
+  "vdd_soc_mean_w": 3.71,
+  "j_per_frame": 1.842
+}
+[table] appended to results/precision_benchmark_2026-09/table.md
+=== 2026-09-24T20:21:54+05:45 model_r101.fp16.plan ===
+[W] 'colored' module is not installed, will not use colors when logging. To enable colors, please install the 'colored' module: python3 -m pip install colored
+[W] Using an engine plan file across different models of devices is not supported and is likely to affect performance or even cause errors or deadlock.
+[trt] engines/model_r101.fp16.plan  in=images  out=['pred_logits', 'pred_boxes']
+  50 frames  engine p50 40.17 ms
+  100 frames  engine p50 40.15 ms
+  150 frames  engine p50 40.17 ms
+  200 frames  engine p50 40.17 ms
+  250 frames  engine p50 40.17 ms
+  300 frames  engine p50 40.16 ms
+  350 frames  engine p50 40.16 ms
+  400 frames  engine p50 40.16 ms
+  450 frames  engine p50 40.15 ms
+{
+  "engine": "model_r101.fp16.plan",
+  "frames": 468,
+  "det_per_frame": 6.92,
+  "engine_p50_ms": 40.15,
+  "engine_p90_ms": 40.34,
+  "e2e_p50_ms": 68.09,
+  "pipeline_fps": 13.86,
+  "power": {
+    "VDD_IN": {
+      "mean_w": 11.868222570532916,
+      "peak_w": 15.849,
+      "n": 319
+    },
+    "VDD_CPU_GPU_CV": {
+      "mean_w": 6.659636363636364,
+      "peak_w": 8.808,
+      "n": 319
+    },
+    "VDD_SOC": {
+      "mean_w": 2.046272727272727,
+      "peak_w": 3.329,
+      "n": 319
+    }
+  },
+  "vdd_in_mean_w": 11.87,
+  "vdd_cpu_gpu_cv_mean_w": 6.66,
+  "vdd_soc_mean_w": 2.05,
+  "j_per_frame": 0.856
+}
+[table] appended to results/precision_benchmark_2026-09/table.md
+=== 2026-09-24T20:22:32+05:45 model_r101.int8.plan ===
+[W] 'colored' module is not installed, will not use colors when logging. To enable colors, please install the 'colored' module: python3 -m pip install colored
+[W] Using an engine plan file across different models of devices is not supported and is likely to affect performance or even cause errors or deadlock.
+[trt] engines/model_r101.int8.plan  in=images  out=['pred_logits', 'pred_boxes']
+  50 frames  engine p50 25.93 ms
+  100 frames  engine p50 25.94 ms
+  150 frames  engine p50 25.92 ms
+  200 frames  engine p50 25.92 ms
+  250 frames  engine p50 25.92 ms
+  300 frames  engine p50 25.92 ms
+  350 frames  engine p50 25.92 ms
+  400 frames  engine p50 25.93 ms
+  450 frames  engine p50 25.93 ms
+{
+  "engine": "model_r101.int8.plan",
+  "frames": 468,
+  "det_per_frame": 6.15,
+  "engine_p50_ms": 25.93,
+  "engine_p90_ms": 26.17,
+  "e2e_p50_ms": 50.29,
+  "pipeline_fps": 18.42,
+  "power": {
+    "VDD_IN": {
+      "mean_w": 9.940654166666665,
+      "peak_w": 12.516,
+      "n": 240
+    },
+    "VDD_CPU_GPU_CV": {
+      "mean_w": 5.236808333333333,
+      "peak_w": 6.512,
+      "n": 240
+    },
+    "VDD_SOC": {
+      "mean_w": 1.8358374999999996,
+      "peak_w": 2.833,
+      "n": 240
+    }
+  },
+  "vdd_in_mean_w": 9.94,
+  "vdd_cpu_gpu_cv_mean_w": 5.24,
+  "vdd_soc_mean_w": 1.84,
+  "j_per_frame": 0.54
+}
+[table] appended to results/precision_benchmark_2026-09/table.md
+=== 2026-09-24T20:23:00+05:45 model_r101.bf16-mixed.plan ===
+[trt] engines/model_r101.bf16-mixed.plan  in=images  out=['pred_logits', 'pred_boxes']
+  50 frames  engine p50 90.75 ms
+  100 frames  engine p50 90.83 ms
+  150 frames  engine p50 90.79 ms
+  200 frames  engine p50 90.79 ms
+  250 frames  engine p50 90.78 ms
+  300 frames  engine p50 90.78 ms
+  350 frames  engine p50 90.78 ms
+  400 frames  engine p50 90.78 ms
+  450 frames  engine p50 90.79 ms
+{
+  "engine": "model_r101.bf16-mixed.plan",
+  "frames": 468,
+  "det_per_frame": 6.72,
+  "engine_p50_ms": 90.79,
+  "engine_p90_ms": 91.23,
+  "e2e_p50_ms": 122.61,
+  "pipeline_fps": 7.85,
+  "power": {
+    "VDD_IN": {
+      "mean_w": 15.783960992907799,
+      "peak_w": 17.273,
+      "n": 564
+    },
+    "VDD_CPU_GPU_CV": {
+      "mean_w": 7.889790780141845,
+      "peak_w": 8.886,
+      "n": 564
+    },
+    "VDD_SOC": {
+      "mean_w": 3.867617021276596,
+      "peak_w": 4.066,
+      "n": 564
+    }
+  },
+  "vdd_in_mean_w": 15.78,
+  "vdd_cpu_gpu_cv_mean_w": 7.89,
+  "vdd_soc_mean_w": 3.87,
+  "j_per_frame": 2.01
+}
+[table] appended to results/precision_benchmark_2026-09/table.md
+=== 2026-09-24T20:24:04+05:45 model_r101.bf16-mixed.plan ===
+[trt] engines/model_r101.bf16-mixed.plan  in=images  out=['pred_logits', 'pred_boxes']
+  50 frames  engine p50 90.91 ms
+  100 frames  engine p50 90.91 ms
+  150 frames  engine p50 90.93 ms
+  200 frames  engine p50 90.93 ms
+  250 frames  engine p50 90.95 ms
+  300 frames  engine p50 90.95 ms
+  350 frames  engine p50 90.95 ms
+  400 frames  engine p50 90.94 ms
+  450 frames  engine p50 90.93 ms
+{
+  "engine": "model_r101.bf16-mixed.plan",
+  "frames": 468,
+  "det_per_frame": 6.72,
+  "engine_p50_ms": 90.93,
+  "engine_p90_ms": 91.44,
+  "e2e_p50_ms": 122.69,
+  "pipeline_fps": 7.84,
+  "power": {
+    "VDD_IN": {
+      "mean_w": 15.832368794326237,
+      "peak_w": 17.508,
+      "n": 564
+    },
+    "VDD_CPU_GPU_CV": {
+      "mean_w": 7.913716312056736,
+      "peak_w": 8.949,
+      "n": 564
+    },
+    "VDD_SOC": {
+      "mean_w": 3.88343085106383,
+      "peak_w": 4.105,
+      "n": 564
+    }
+  },
+  "vdd_in_mean_w": 15.83,
+  "vdd_cpu_gpu_cv_mean_w": 7.91,
+  "vdd_soc_mean_w": 3.88,
+  "j_per_frame": 2.018
+}
+[table] appended to results/precision_benchmark_2026-09/table.md
+=== 2026-09-24T20:25:08+05:45 model_r101.int8.plan ===
+[W] 'colored' module is not installed, will not use colors when logging. To enable colors, please install the 'colored' module: python3 -m pip install colored
+[W] Using an engine plan file across different models of devices is not supported and is likely to affect performance or even cause errors or deadlock.
+[trt] engines/model_r101.int8.plan  in=images  out=['pred_logits', 'pred_boxes']
+  50 frames  engine p50 26.14 ms
+  100 frames  engine p50 26.11 ms
+  150 frames  engine p50 26.07 ms
+  200 frames  engine p50 26.06 ms
+  250 frames  engine p50 26.05 ms
+  300 frames  engine p50 26.04 ms
+  350 frames  engine p50 26.03 ms
+  400 frames  engine p50 26.03 ms
+  450 frames  engine p50 26.03 ms
+{
+  "engine": "model_r101.int8.plan",
+  "frames": 468,
+  "det_per_frame": 6.15,
+  "engine_p50_ms": 26.02,
+  "engine_p90_ms": 26.25,
+  "e2e_p50_ms": 50.77,
+  "pipeline_fps": 18.37,
+  "power": {
+    "VDD_IN": {
+      "mean_w": 10.087879668049792,
+      "peak_w": 12.673,
+      "n": 241
+    },
+    "VDD_CPU_GPU_CV": {
+      "mean_w": 5.317373443983403,
+      "peak_w": 6.541,
+      "n": 241
+    },
+    "VDD_SOC": {
+      "mean_w": 1.8702240663900414,
+      "peak_w": 2.907,
+      "n": 241
+    }
+  },
+  "vdd_in_mean_w": 10.09,
+  "vdd_cpu_gpu_cv_mean_w": 5.32,
+  "vdd_soc_mean_w": 1.87,
+  "j_per_frame": 0.549
+}
+[table] appended to results/precision_benchmark_2026-09/table.md
+=== 2026-09-24T20:25:36+05:45 model_r101.fp16.plan ===
+[W] 'colored' module is not installed, will not use colors when logging. To enable colors, please install the 'colored' module: python3 -m pip install colored
+[W] Using an engine plan file across different models of devices is not supported and is likely to affect performance or even cause errors or deadlock.
+[trt] engines/model_r101.fp16.plan  in=images  out=['pred_logits', 'pred_boxes']
+  50 frames  engine p50 40.31 ms
+  100 frames  engine p50 40.30 ms
+  150 frames  engine p50 40.27 ms
+  200 frames  engine p50 40.26 ms
+  250 frames  engine p50 40.25 ms
+  300 frames  engine p50 40.23 ms
+  350 frames  engine p50 40.22 ms
+  400 frames  engine p50 40.21 ms
+  450 frames  engine p50 40.21 ms
+{
+  "engine": "model_r101.fp16.plan",
+  "frames": 468,
+  "det_per_frame": 6.92,
+  "engine_p50_ms": 40.21,
+  "engine_p90_ms": 40.42,
+  "e2e_p50_ms": 68.11,
+  "pipeline_fps": 13.85,
+  "power": {
+    "VDD_IN": {
+      "mean_w": 11.945724137931036,
+      "peak_w": 16.019,
+      "n": 319
+    },
+    "VDD_CPU_GPU_CV": {
+      "mean_w": 6.7158338557993735,
+      "peak_w": 8.925,
+      "n": 319
+    },
+    "VDD_SOC": {
+      "mean_w": 2.0641222570532913,
+      "peak_w": 3.362,
+      "n": 319
+    }
+  },
+  "vdd_in_mean_w": 11.95,
+  "vdd_cpu_gpu_cv_mean_w": 6.72,
+  "vdd_soc_mean_w": 2.06,
+  "j_per_frame": 0.862
+}
+[table] appended to results/precision_benchmark_2026-09/table.md
+=== 2026-09-24T20:26:12+05:45 model_r101.plan ===
+[W] 'colored' module is not installed, will not use colors when logging. To enable colors, please install the 'colored' module: python3 -m pip install colored
+[W] Using an engine plan file across different models of devices is not supported and is likely to affect performance or even cause errors or deadlock.
+[trt] engines/model_r101.plan  in=images  out=['pred_logits', 'pred_boxes']
+  50 frames  engine p50 76.66 ms
+  100 frames  engine p50 76.69 ms
+  150 frames  engine p50 76.74 ms
+  200 frames  engine p50 76.74 ms
+  250 frames  engine p50 76.75 ms
+  300 frames  engine p50 76.78 ms
+  350 frames  engine p50 76.78 ms
+  400 frames  engine p50 76.78 ms
+  450 frames  engine p50 76.78 ms
+{
+  "engine": "model_r101.plan",
+  "frames": 468,
+  "det_per_frame": 6.99,
+  "engine_p50_ms": 76.78,
+  "engine_p90_ms": 77.39,
+  "e2e_p50_ms": 110.04,
+  "pipeline_fps": 8.71,
+  "power": {
+    "VDD_IN": {
+      "mean_w": 15.999660117878191,
+      "peak_w": 18.231,
+      "n": 509
+    },
+    "VDD_CPU_GPU_CV": {
+      "mean_w": 8.512381139489195,
+      "peak_w": 10.139,
+      "n": 509
+    },
+    "VDD_SOC": {
+      "mean_w": 3.7485599214145378,
+      "peak_w": 3.975,
+      "n": 509
+    }
+  },
+  "vdd_in_mean_w": 16.0,
+  "vdd_cpu_gpu_cv_mean_w": 8.51,
+  "vdd_soc_mean_w": 3.75,
+  "j_per_frame": 1.837
+}
+[table] appended to results/precision_benchmark_2026-09/table.md
+=== 2026-09-24T20:27:09+05:45 model_r101.fp16.plan ===
+[W] 'colored' module is not installed, will not use colors when logging. To enable colors, please install the 'colored' module: python3 -m pip install colored
+[W] Using an engine plan file across different models of devices is not supported and is likely to affect performance or even cause errors or deadlock.
+[trt] engines/model_r101.fp16.plan  in=images  out=['pred_logits', 'pred_boxes']
+  50 frames  engine p50 40.17 ms
+  100 frames  engine p50 40.16 ms
+  150 frames  engine p50 40.15 ms
+  200 frames  engine p50 40.12 ms
+  250 frames  engine p50 40.11 ms
+  300 frames  engine p50 40.11 ms
+  350 frames  engine p50 40.12 ms
+  400 frames  engine p50 40.12 ms
+  450 frames  engine p50 40.12 ms
+{
+  "engine": "model_r101.fp16.plan",
+  "frames": 468,
+  "det_per_frame": 6.92,
+  "engine_p50_ms": 40.12,
+  "engine_p90_ms": 40.31,
+  "e2e_p50_ms": 67.92,
+  "pipeline_fps": 13.86,
+  "power": {
+    "VDD_IN": {
+      "mean_w": 11.988648902821316,
+      "peak_w": 16.293,
+      "n": 319
+    },
+    "VDD_CPU_GPU_CV": {
+      "mean_w": 6.7241692789968655,
+      "peak_w": 9.027,
+      "n": 319
+    },
+    "VDD_SOC": {
+      "mean_w": 2.090912225705329,
+      "peak_w": 3.519,
+      "n": 319
+    }
+  },
+  "vdd_in_mean_w": 11.99,
+  "vdd_cpu_gpu_cv_mean_w": 6.72,
+  "vdd_soc_mean_w": 2.09,
+  "j_per_frame": 0.865
+}
+[table] appended to results/precision_benchmark_2026-09/table.md
+=== 2026-09-24T20:27:45+05:45 model_r101.plan ===
+[W] 'colored' module is not installed, will not use colors when logging. To enable colors, please install the 'colored' module: python3 -m pip install colored
+[W] Using an engine plan file across different models of devices is not supported and is likely to affect performance or even cause errors or deadlock.
+[trt] engines/model_r101.plan  in=images  out=['pred_logits', 'pred_boxes']
+  50 frames  engine p50 76.80 ms
+  100 frames  engine p50 76.80 ms
+  150 frames  engine p50 76.79 ms
+  200 frames  engine p50 76.79 ms
+  250 frames  engine p50 76.79 ms
+  300 frames  engine p50 76.81 ms
+  350 frames  engine p50 76.81 ms
+  400 frames  engine p50 76.81 ms
+  450 frames  engine p50 76.81 ms
+{
+  "engine": "model_r101.plan",
+  "frames": 468,
+  "det_per_frame": 6.99,
+  "engine_p50_ms": 76.82,
+  "engine_p90_ms": 77.35,
+  "e2e_p50_ms": 110.39,
+  "pipeline_fps": 8.69,
+  "power": {
+    "VDD_IN": {
+      "mean_w": 15.97712966601179,
+      "peak_w": 18.661,
+      "n": 509
+    },
+    "VDD_CPU_GPU_CV": {
+      "mean_w": 8.49598231827112,
+      "peak_w": 10.355,
+      "n": 509
+    },
+    "VDD_SOC": {
+      "mean_w": 3.7583889980353633,
+      "peak_w": 4.092,
+      "n": 509
+    }
+  },
+  "vdd_in_mean_w": 15.98,
+  "vdd_cpu_gpu_cv_mean_w": 8.5,
+  "vdd_soc_mean_w": 3.76,
+  "j_per_frame": 1.838
+}
+[table] appended to results/precision_benchmark_2026-09/table.md
+=== 2026-09-24T20:28:43+05:45 model_r101.bf16-mixed.plan ===
+[trt] engines/model_r101.bf16-mixed.plan  in=images  out=['pred_logits', 'pred_boxes']
+  50 frames  engine p50 90.86 ms
+  100 frames  engine p50 90.88 ms
+  150 frames  engine p50 90.87 ms
+  200 frames  engine p50 90.86 ms
+  250 frames  engine p50 90.94 ms
+  300 frames  engine p50 90.94 ms
+  350 frames  engine p50 90.91 ms
+  400 frames  engine p50 90.94 ms
+  450 frames  engine p50 90.94 ms
+{
+  "engine": "model_r101.bf16-mixed.plan",
+  "frames": 468,
+  "det_per_frame": 6.72,
+  "engine_p50_ms": 90.95,
+  "engine_p90_ms": 91.54,
+  "e2e_p50_ms": 123.26,
+  "pipeline_fps": 7.83,
+  "power": {
+    "VDD_IN": {
+      "mean_w": 15.856243816254416,
+      "peak_w": 17.518,
+      "n": 566
+    },
+    "VDD_CPU_GPU_CV": {
+      "mean_w": 7.920590106007067,
+      "peak_w": 9.027,
+      "n": 566
+    },
+    "VDD_SOC": {
+      "mean_w": 3.8935583038869255,
+      "peak_w": 4.138,
+      "n": 566
+    }
+  },
+  "vdd_in_mean_w": 15.86,
+  "vdd_cpu_gpu_cv_mean_w": 7.92,
+  "vdd_soc_mean_w": 3.89,
+  "j_per_frame": 2.024
+}
+[table] appended to results/precision_benchmark_2026-09/table.md
+=== 2026-09-24T20:29:47+05:45 model_r101.int8.plan ===
+[W] 'colored' module is not installed, will not use colors when logging. To enable colors, please install the 'colored' module: python3 -m pip install colored
+[W] Using an engine plan file across different models of devices is not supported and is likely to affect performance or even cause errors or deadlock.
+[trt] engines/model_r101.int8.plan  in=images  out=['pred_logits', 'pred_boxes']
+  50 frames  engine p50 26.00 ms
+  100 frames  engine p50 25.99 ms
+  150 frames  engine p50 25.97 ms
+  200 frames  engine p50 25.96 ms
+  250 frames  engine p50 25.96 ms
+  300 frames  engine p50 25.95 ms
+  350 frames  engine p50 25.94 ms
+  400 frames  engine p50 25.93 ms
+  450 frames  engine p50 25.93 ms
+{
+  "engine": "model_r101.int8.plan",
+  "frames": 468,
+  "det_per_frame": 6.15,
+  "engine_p50_ms": 25.93,
+  "engine_p90_ms": 26.14,
+  "e2e_p50_ms": 50.59,
+  "pipeline_fps": 18.35,
+  "power": {
+    "VDD_IN": {
+      "mean_w": 10.02102489626556,
+      "peak_w": 12.692,
+      "n": 241
+    },
+    "VDD_CPU_GPU_CV": {
+      "mean_w": 5.266112033195021,
+      "peak_w": 6.647,
+      "n": 241
+    },
+    "VDD_SOC": {
+      "mean_w": 1.867323651452282,
+      "peak_w": 2.824,
+      "n": 241
+    }
+  },
+  "vdd_in_mean_w": 10.02,
+  "vdd_cpu_gpu_cv_mean_w": 5.27,
+  "vdd_soc_mean_w": 1.87,
+  "j_per_frame": 0.546
+}
+[table] appended to results/precision_benchmark_2026-09/table.md

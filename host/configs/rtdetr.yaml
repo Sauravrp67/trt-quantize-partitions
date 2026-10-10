@@ -16,60 +16,65 @@ backbone: r101vd
 #
 # Adding one: give it a config + ckpt, and name its exports rtdetr_<backbone>.onnx /
 # rtdetr_<backbone>.fp16.onnx (the r18vd/r101vd paths below predate that convention).
+# Checkpoint availability and upstream download references are recorded per entry.
 backbones:
-
   r18vd:
     config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_r18vd_6x_coco.yml
     ckpt: ${models}/rtdetr/checkpoints/rtdetr_r18vd_dec3_6x_coco_from_paddle.pth
     onnx:
       fp32: ${models}/rtdetr/model.onnx
       fp16: ${models}/rtdetr/model.fp16.onnx
-
+    checkpoint_status: released
+    checkpoint_url: https://github.com/lyuwenyu/storage/releases/download/v0.1/rtdetr_r18vd_dec3_6x_coco_from_paddle.pth
   r101vd:
-    # this checkpoint is the Objects365-pretrained release, not the plain 6x COCO one
+    # Objects365-pretrained release, rather than the plain COCO checkpoint.
     config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_r101vd_6x_coco.yml
     ckpt: ${models}/rtdetr/checkpoints/rtdetr_r101vd_2x_coco_objects365_from_paddle.pth
     onnx:
       fp32: ${models}/rtdetr/model_r101.onnx
       fp16: ${models}/rtdetr/model_r101.fp16.onnx
       int8: ${models}/rtdetr/model_r101.int8.onnx
-
-  # --- released upstream, checkpoint not downloaded yet -----------------------------
-  # (filenames are the official ones from RT-DETR/rtdetr_pytorch/README.md)
-
+    checkpoint_status: released
+    checkpoint_url: https://github.com/lyuwenyu/storage/releases/download/v0.1/rtdetr_r101vd_2x_coco_objects365_from_paddle.pth
   r34vd:
     config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_r34vd_6x_coco.yml
     ckpt: ${models}/rtdetr/checkpoints/rtdetr_r34vd_dec4_6x_coco_from_paddle.pth
     onnx:
       fp32: ${models}/rtdetr/rtdetr_r34vd.onnx
       fp16: ${models}/rtdetr/rtdetr_r34vd.fp16.onnx
-
+    checkpoint_status: released
+    checkpoint_url: https://github.com/lyuwenyu/storage/releases/download/v0.1/rtdetr_r34vd_dec4_6x_coco_from_paddle.pth
   r50vd:
     config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_r50vd_6x_coco.yml
     ckpt: ${models}/rtdetr/checkpoints/rtdetr_r50vd_6x_coco_from_paddle.pth
     onnx:
       fp32: ${models}/rtdetr/rtdetr_r50vd.onnx
       fp16: ${models}/rtdetr/rtdetr_r50vd.fp16.onnx
-
+    checkpoint_status: released
+    checkpoint_url: https://github.com/lyuwenyu/storage/releases/download/v0.1/rtdetr_r50vd_6x_coco_from_paddle.pth
   r50vd_m:
     config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_r50vd_m_6x_coco.yml
     ckpt: ${models}/rtdetr/checkpoints/rtdetr_r50vd_m_6x_coco_from_paddle.pth
     onnx:
       fp32: ${models}/rtdetr/rtdetr_r50vd_m.onnx
       fp16: ${models}/rtdetr/rtdetr_r50vd_m.fp16.onnx
+    checkpoint_status: released
+    checkpoint_url: https://github.com/lyuwenyu/storage/releases/download/v0.1/rtdetr_r50vd_m_6x_coco_from_paddle.pth
+  dla34:
+    config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_dla34_6x_coco.yml
+    ckpt: ${models}/rtdetr/checkpoints/rtdetr_dla34_6x_coco.pth
+    onnx:
+      fp32: ${models}/rtdetr/rtdetr_dla34.onnx
+      fp16: ${models}/rtdetr/rtdetr_dla34.fp16.onnx
+    checkpoint_status: user_supplied
+  regnet:
+    config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_regnet_6x_coco.yml
+    ckpt: ${models}/rtdetr/checkpoints/rtdetr_regnet_6x_coco.pth
+    onnx:
+      fp32: ${models}/rtdetr/rtdetr_regnet.onnx
+      fp16: ${models}/rtdetr/rtdetr_regnet.fp16.onnx
+    checkpoint_status: user_supplied
 
-  # --- config exists upstream but no released checkpoint (needs training) -----------
-  # dla34:
-  #   config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_dla34_6x_coco.yml
-  #   ckpt: ${models}/rtdetr/checkpoints/<your trained dla34>.pth
-  #   onnx: {fp32: ${models}/rtdetr/rtdetr_dla34.onnx, fp16: ${models}/rtdetr/rtdetr_dla34.fp16.onnx}
-  # regnet:
-  #   config: ${rtdetr_pytorch}/configs/rtdetr/rtdetr_regnet_6x_coco.yml
-  #   ckpt: ${models}/rtdetr/checkpoints/<your trained regnet>.pth
-  #   onnx: {fp32: ${models}/rtdetr/rtdetr_regnet.onnx, fp16: ${models}/rtdetr/rtdetr_regnet.fp16.onnx}
-
-# Export contract, shared by every backbone unless an entry overrides it. Stages 01-05
-# and the partition spec key off these tensor names — keep them in sync.
 onnx:
   input_name: images
   output_names: [pred_logits, pred_boxes]

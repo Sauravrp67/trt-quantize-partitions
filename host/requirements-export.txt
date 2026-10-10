@@ -1,0 +1,19 @@
+# Host FP32 ONNX export for RT-DETR, RT-DETRv2, and RT-DETRv4.
+# Direct versions selected from the local export stack; CPU ORT replaces GPU ORT.
+# Target Linux x86-64 / Python 3.11; see the runtime validation note in the guide.
+# The fully resolved Linux/Python 3.11 set is requirements-export.lock.
+# PyTorch CUDA wheels are platform-specific; see host/models/README.md.
+torch==2.12.0
+torchvision==0.27.0
+numpy==2.2.6
+Pillow==11.3.0
+PyYAML==6.0.3
+scipy==1.16.2
+transformers==4.56.2
+faster-coco-eval==1.8.0
+tensorboard==2.20.0
+calflops==0.3.2
+pycocotools==2.0.10
+onnx==1.21.0
+onnxscript==0.7.0
+onnxruntime==1.27.0

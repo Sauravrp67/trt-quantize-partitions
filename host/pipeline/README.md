@@ -1,11 +1,12 @@
 # Host pipeline
 
-The scripts here handle shared ONNX preparation and analysis. Model-specific checkpoint loading and export stay in `host/models/<model>/`.
+The scripts here handle shared ONNX preparation and analysis. Model-specific checkpoint loading and export stay in `host/models/<model>/`; pinned source stays in `third_party/`.
 
 ```mermaid
 flowchart TD
     A[Model config and checkpoint] --> B[export.py]
     B --> C[Model-specific exporter<br/>host/models/&lt;model&gt;/export.py]
+    U[Pinned source<br/>third_party/] --> C
     C --> D[FP32 ONNX<br/>validated with export metadata]
     D --> E[graph_surgery.py<br/>remove dead nodes, name and sort]
     E --> F[Prepared FP32 ONNX and node manifest]
@@ -33,6 +34,8 @@ Run from the repository root. Export and graph preparation use the selected mode
 python host/pipeline/export.py --spec rtdetr --backbone r101vd
 python host/pipeline/graph_surgery.py --spec rtdetr --backbone r101vd
 ```
+
+Use `--spec rtdetrv2`, `rtdetrv3`, or `rtdetrv4` with a registered backbone to export those families. Initialize their pinned source under [`third_party/`](../../third_party/) and follow the checkpoint and dependency instructions in each `host/models/<model>/README.md`. Quantization reads the exported ONNX and the model adapter's preprocessing; it does not import the upstream source. The shared stages rely on the same static raw-output ONNX contract; their accuracy and Jetson compatibility must be checked for each exported model.
 
 Convert FP32 ONNX to FP16:
 

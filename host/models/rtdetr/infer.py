@@ -28,6 +28,8 @@ def main() -> None:
     parser.add_argument("--source", required=True,
                         help="image file | folder of images | video file | camera index (e.g. 0)")
     parser.add_argument("--spec", default="rtdetr", help="model spec name or configs/*.yaml path")
+    parser.add_argument("--backbone", default=None,
+                        help="entry of the spec's backbones registry")
     parser.add_argument("--backends", default=None,
                         help="comma list from {torch,ort,trt} (default: spec defaults.backends)")
     parser.add_argument("--compare", action="store_true",
@@ -56,7 +58,7 @@ def main() -> None:
     # alone. --backends and --precision select *how* to run it, which is the axis this CLI
     # exists to sweep; everything else is read from the YAML so a run is reproducible from
     # the committed spec plus the command line, with no third source of truth.
-    spec = load_spec(args.spec)
+    spec = load_spec(args.spec, args.backbone)
     device = resolve_device(spec, tag="infer")
 
     backends = (args.backends.split(",") if args.backends else spec.defaults.get("backends", ["torch"]))

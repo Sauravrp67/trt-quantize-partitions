@@ -1,0 +1,65 @@
+# Explicit registry of every top-level model config in the pinned upstream family.
+# Include/base configs and other detector families are not model variants.
+# checkpoint_status: released (upstream download reference) or user_supplied.
+name: rtdetrv3
+classes: ${configs}/classes/coco80.yaml
+backbone: r18vd
+backbones:
+  r18vd:
+    config: ${rtdetrv3}/configs/rtdetrv3/rtdetrv3_r18vd_6x_coco.yml
+    ckpt: ${models}/rtdetrv3/checkpoints/rtdetrv3_r18vd_6x_coco.pdparams
+    onnx:
+      fp32: ${models}/rtdetrv3/rtdetrv3_r18vd.onnx
+      fp16: ${models}/rtdetrv3/rtdetrv3_r18vd.fp16.onnx
+    checkpoint_status: released
+    checkpoint_url: https://drive.google.com/file/d/1zIDOjn1qDccC3TBsDlGQHOjVrehd26bk/view
+  r50vd:
+    config: ${rtdetrv3}/configs/rtdetrv3/rtdetrv3_r50vd_6x_coco.yml
+    ckpt: ${models}/rtdetrv3/checkpoints/rtdetrv3_r50vd_6x_coco.pdparams
+    onnx:
+      fp32: ${models}/rtdetrv3/rtdetrv3_r50vd.onnx
+      fp16: ${models}/rtdetrv3/rtdetrv3_r50vd.fp16.onnx
+    checkpoint_status: released
+    checkpoint_url: https://drive.google.com/file/d/1wfJE-QgdgqKE0IkiTuoD5HEbZwwZg3sQ/view
+  r18vd_lvis:
+    config: ${rtdetrv3}/configs/rtdetrv3/rtdetrv3_r18vd_6x_lvis.yml
+    ckpt: ${models}/rtdetrv3/checkpoints/rtdetrv3_r18vd_6x_lvis.pdparams
+    onnx:
+      fp32: ${models}/rtdetrv3/rtdetrv3_r18vd_lvis.onnx
+      fp16: ${models}/rtdetrv3/rtdetrv3_r18vd_lvis.fp16.onnx
+    checkpoint_status: user_supplied
+    classes: ${configs}/classes/lvis1203.yaml
+  r34vd:
+    config: ${rtdetrv3}/configs/rtdetrv3/rtdetrv3_r34vd_6x_coco.yml
+    ckpt: ${models}/rtdetrv3/checkpoints/rtdetrv3_r34vd_6x_coco.pdparams
+    onnx:
+      fp32: ${models}/rtdetrv3/rtdetrv3_r34vd.onnx
+      fp16: ${models}/rtdetrv3/rtdetrv3_r34vd.fp16.onnx
+    checkpoint_status: released
+    checkpoint_url: https://drive.google.com/file/d/12-wqAF8i67eqbocaWPK33d4tFkN2wGi2/view
+  r50vd_lvis:
+    config: ${rtdetrv3}/configs/rtdetrv3/rtdetrv3_r50vd_6x_lvis.yml
+    ckpt: ${models}/rtdetrv3/checkpoints/rtdetrv3_r50vd_6x_lvis.pdparams
+    onnx:
+      fp32: ${models}/rtdetrv3/rtdetrv3_r50vd_lvis.onnx
+      fp16: ${models}/rtdetrv3/rtdetrv3_r50vd_lvis.fp16.onnx
+    checkpoint_status: user_supplied
+    classes: ${configs}/classes/lvis1203.yaml
+onnx:
+  input_name: images
+  output_names: [pred_logits, pred_boxes]
+  img_size: 640
+  batch: 1
+  default: fp32
+defaults:
+  device: cpu
+  backends: [ort, trt]
+  providers: [CUDAExecutionProvider, CPUExecutionProvider]
+  score_thr: 0.5
+  tf32: true
+  warmup: 10
+  timing_cache: ${engines}/timing_rtdetrv3_{backbone}.cache
+outputs:
+  figures: ${figures}/infer/rtdetrv3/{backbone}
+  table: ${tables}/rtdetrv3_{backbone}_map.md
+  export_artifacts: ${models}/rtdetrv3/artifacts/{backbone}

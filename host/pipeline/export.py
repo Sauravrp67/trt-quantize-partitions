@@ -132,8 +132,19 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Export a registered model to static FP32 ONNX")
     parser.add_argument("--spec", default="rtdetr", help="model name or host/configs/*.yaml path")
     parser.add_argument("--backbone", default=None, help="backbone in the model spec")
+    parser.add_argument("--list", action="store_true", help="list registered variants and checkpoint paths")
     parser.add_argument("--no-report", action="store_true", help="skip the model exporter's report")
     args = parser.parse_args()
+    if args.list:
+        for name in load_spec(args.spec).backbones:
+            spec = load_spec(args.spec, name)
+            entry = (spec.raw.get("backbones") or {}).get(name, {})
+            print(f"{name}: {spec.num_classes} classes, {entry.get('checkpoint_status', 'unspecified')}")
+            print(f"  config: {spec.torch_config}")
+            print(f"  checkpoint: {spec.ckpt}")
+            print(f"  download: {entry.get('checkpoint_url', 'supply your trained checkpoint')}")
+            print(f"  ONNX: {spec.onnx_path('fp32')}")
+        return
     run(load_spec(args.spec, args.backbone), report=not args.no_report)
 
 

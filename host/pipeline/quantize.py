@@ -38,7 +38,7 @@ def main() -> None:
     args = ap.parse_args()
 
     spec = load_spec(args.spec, args.backbone)
-    fp32 = require(spec.onnx_path("fp32"), "FP32 ONNX", "export it with host/models/rtdetr/export.py")
+    fp32 = require(spec.onnx_path("fp32"), "FP32 ONNX", "export it with host/pipeline/export.py")
     out = Path(args.out) if args.out else int8_path_for(fp32)
 
     adapter = load_adapter(spec, onnx="fp32", device=args.device)
